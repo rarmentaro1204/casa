@@ -49,12 +49,17 @@ export async function runScene(sceneId) {
   return res.map((r, i) => ({ device: scene.actions[i].device, ok: r.status === 'fulfilled', error: r.reason?.message }));
 }
 
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout')), ms))]);
+
 export async function state() {
   const cache = (await store().get('state', { type: 'json' })) || {};
+  const valves = config.devices.filter((d) => d.driver === 'meross' && d.type === 'thermostat');
+  const valveState = valves.length ? await meross.readThermostats(valves).catch((e) => Object.fromEntries(valves.map((d) => [d.id, { online: false, error: e.message }]))) : {};
   const live = await Promise.all(config.devices.map(async (d) => {
+    if (valveState[d.id]) return [d.id, { ...cache[d.id], ...valveState[d.id] }];
     const fn = read[`${d.driver}:${d.type}`];
     if (!fn) return [d.id, cache[d.id] || {}]; // es. tapparelle: solo l'ultimo comando
-    try { return [d.id, { ...cache[d.id], ...(await fn(d)), online: true }]; }
+    try { return [d.id, { ...cache[d.id], ...(await withTimeout(fn(d), 5000)), online: true }]; }
     catch (e) { return [d.id, { ...cache[d.id], online: false, error: e.message }]; }
   }));
   return Object.fromEntries(live);

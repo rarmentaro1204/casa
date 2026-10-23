@@ -162,7 +162,7 @@ async function init() {
   try { cfg = await api('config'); }
   catch (e) { if (!DEMO && location.hostname !== 'localhost') { DEMO = true; toast('Backend non raggiungibile: modalità demo'); cfg = demo.cfg; } else { DEMO = true; cfg = demo.cfg; } }
   if (DEMO) $('#title').textContent = 'Casa · demo';
-  await refresh(); setInterval(refresh, 20000);
+  render(); refresh(); setInterval(refresh, 20000); // mostra subito le schede, lo stato arriva dopo
 }
 setInterval(() => { $('#clock').textContent = new Date().toLocaleString('it-IT', { weekday: 'long', hour: '2-digit', minute: '2-digit' }); }, 1000);
 

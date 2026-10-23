@@ -33,7 +33,7 @@ async function send(uuid, method, namespace, payload) {
   const client = mqtt.connect(`mqtts://${host}:2001`, { clientId, username: s.userId, password: md5(s.userId + s.key) });
   const respTopic = `/app/${s.userId}-${s.appId}/subscribe`;
   return new Promise((resolve, reject) => {
-    const t = setTimeout(() => { client.end(true); reject(new Error('Meross: timeout')); }, 8000);
+    const t = setTimeout(() => { client.end(true); reject(new Error('Meross: timeout')); }, 5000);
     client.on('error', (e) => { clearTimeout(t); client.end(true); reject(e); });
     client.on('connect', () => {
       client.subscribe(respTopic);
@@ -94,4 +94,22 @@ export async function listDevices() {
 // Diagnostica: risposta grezza di Meross per una valvola (stato on/off, modalità, temperature).
 export async function rawThermostat(dev) {
   return send(dev.hubUuid, 'GET', 'Appliance.Hub.Mts100.All', { all: [{ id: dev.subId }] });
+}
+
+// Una sola richiesta per hub per leggere tutte le valvole (molto più veloce di una connessione per valvola).
+export async function readThermostats(devs) {
+  const byHub = {};
+  for (const d of devs) (byHub[d.hubUuid] ??= []).push(d);
+  const out = {};
+  await Promise.all(Object.entries(byHub).map(async ([hub, list]) => {
+    try {
+      const p = await send(hub, 'GET', 'Appliance.Hub.Mts100.All', { all: list.map((d) => ({ id: d.subId })) });
+      for (const d of list) {
+        const x = p.all?.find((y) => y.id === d.subId);
+        if (!x?.temperature) { out[d.id] = { online: false, error: 'Valvola non raggiungibile' }; continue; }
+        out[d.id] = { current: x.temperature.room / 10, target: x.temperature.currentSet / 10, on: x.togglex?.onoff === 1, online: x.online?.status === 1 };
+      }
+    } catch (e) { for (const d of list) out[d.id] = { online: false, error: e.message }; }
+  }));
+  return out;
 }
