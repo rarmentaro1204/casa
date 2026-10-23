@@ -43,7 +43,9 @@ async function send(uuid, method, namespace, payload) {
       client.on('message', (_t, buf) => {
         const m = JSON.parse(buf.toString());
         if (m.header.messageId !== messageId) return;
-        clearTimeout(t); client.end(true); resolve(m.payload);
+        clearTimeout(t); client.end(true);
+        if (m.header.method === 'ERROR') reject(new Error(`Meross ha rifiutato il comando: ${JSON.stringify(m.payload?.error ?? m.payload)}`));
+        else resolve(m.payload);
       });
       client.publish(`/appliance/${uuid}/subscribe`, JSON.stringify({ header, payload }));
     });
