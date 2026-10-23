@@ -43,12 +43,3 @@ export async function readAc(dev) {
   const target = g('temp_set');
   return { on: g('switch'), target: target != null ? target / 10 : undefined, current: g('temp_current'), mode: MODE_FROM_TUYA[g('mode')] ?? g('mode') };
 }
-
-// Diagnostica: codici e valori che il climatizzatore accetta (i nomi variano per modello).
-export async function rawAc(dev) {
-  const [functions, status] = await Promise.all([
-    req('GET', `/v1.0/devices/${dev.deviceId}/functions`).catch((e) => ({ error: e.message })),
-    req('GET', `/v1.0/iot-03/devices/${dev.deviceId}/status`).catch((e) => ({ error: e.message })),
-  ]);
-  return { functions, status };
-}
