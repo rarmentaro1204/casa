@@ -3,7 +3,13 @@
     { "id": "tap-soggiorno", "name": "Tapparella", "room": "Soggiorno", "type": "shutter", "driver": "ewelink", "up": "ID_SONOFF_SU", "down": "ID_SONOFF_GIU" },
     { "id": "luce-soggiorno", "name": "Luce", "room": "Soggiorno", "type": "light", "driver": "ewelink", "deviceId": "ID_SONOFF_LUCE" },
     { "id": "portone", "name": "Portone", "room": "Ingresso", "type": "door", "driver": "ewelink", "deviceId": "ID_SONOFF_CITOFONO" },
-    { "id": "valvola-soggiorno", "name": "Termovalvola", "room": "Soggiorno", "type": "thermostat", "driver": "meross", "hubUuid": "UUID_HUB_MSH300", "subId": "ID_MTS150" },
+    { "id": "valvola-cameretta", "name": "Cameretta", "room": "Cameretta", "type": "thermostat", "driver": "meross", "hubUuid": "2306284619448662080148e1e9cc143d", "subId": "03008EE9" },
+    { "id": "valvola-soggiorno-sud", "name": "Soggiorno sud", "room": "Soggiorno", "type": "thermostat", "driver": "meross", "hubUuid": "2306284619448662080148e1e9cc143d", "subId": "0300FE33" },
+    { "id": "valvola-soggiorno", "name": "Soggiorno", "room": "Soggiorno", "type": "thermostat", "driver": "meross", "hubUuid": "2306284619448662080148e1e9cc143d", "subId": "0300CA13" },
+    { "id": "valvola-camera-matrimoniale", "name": "Camera matrimoniale", "room": "Camera matrimoniale", "type": "thermostat", "driver": "meross", "hubUuid": "2306284619448662080148e1e9cc143d", "subId": "03006DA8" },
+    { "id": "valvola-bagno-finestra", "name": "Bagno finestra", "room": "Bagno", "type": "thermostat", "driver": "meross", "hubUuid": "2306284619448662080148e1e9cc143d", "subId": "03004499" },
+    { "id": "valvola-cucina", "name": "Cucina", "room": "Cucina", "type": "thermostat", "driver": "meross", "hubUuid": "2306284619448662080148e1e9cc143d", "subId": "03006773" },
+    { "id": "valvola-bagno-ingresso", "name": "Bagno ingresso", "room": "Bagno", "type": "thermostat", "driver": "meross", "hubUuid": "2306284619448662080148e1e9cc143d", "subId": "03003326" },
     { "id": "clima-soggiorno", "name": "Climatizzatore", "room": "Soggiorno", "type": "ac", "driver": "tuya", "deviceId": "ID_TUYA_ZEPHIR" }
   ],
   "scenes": [
