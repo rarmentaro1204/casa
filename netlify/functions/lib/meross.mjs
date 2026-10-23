@@ -22,7 +22,7 @@ async function login(retry = true) {
   // L'account è in un'altra regione: Meross indica il dominio giusto.
   if (r.apiStatus === 1030 && r.data?.domain && retry) { apiBase = r.data.domain.startsWith('http') ? r.data.domain : `https://${r.data.domain}`; return login(false); }
   if (r.apiStatus !== 0) throw new Error(`Meross login: ${r.info}`);
-  session = { ...r.data, appId: md5(crypto.randomUUID()) };
+  session = { ...r.data, userId: String(r.data.userId ?? r.data.userid), appId: md5(crypto.randomUUID()) };
   return session;
 }
 
