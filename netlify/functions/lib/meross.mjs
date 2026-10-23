@@ -88,3 +88,8 @@ export async function listDevices() {
   }
   return { hubs: out, altriDispositivi: devs.filter((d) => !/^msh/i.test(d.deviceType)).map((d) => ({ uuid: d.uuid, name: d.devName, type: d.deviceType })) };
 }
+
+// Diagnostica: risposta grezza di Meross per una valvola (stato on/off, modalità, temperature).
+export async function rawThermostat(dev) {
+  return send(dev.hubUuid, 'GET', 'Appliance.Hub.Mts100.All', { all: [{ id: dev.subId }] });
+}
