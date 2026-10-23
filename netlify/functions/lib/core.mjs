@@ -1,10 +1,16 @@
 import { getStore } from '@netlify/blobs';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import * as ewelink from './ewelink.mjs';
 import * as meross from './meross.mjs';
 import * as tuya from './tuya.mjs';
 
-export const config = JSON.parse(readFileSync(new URL('../../../config/devices.json', import.meta.url), 'utf8'));
+// Con il bundle esbuild import.meta.url punta a /var/task/netlify/functions/api.mjs, quindi il percorso cambia.
+const configUrls = [
+  new URL('../../../config/devices.json', import.meta.url),
+  new URL('../../config/devices.json', import.meta.url),
+  new URL(`file://${process.cwd()}/config/devices.json`),
+];
+export const config = JSON.parse(readFileSync(configUrls.find((u) => existsSync(u)) ?? configUrls[0], 'utf8'));
 const store = () => getStore('casa');
 const byId = (id) => config.devices.find((d) => d.id === id);
 
