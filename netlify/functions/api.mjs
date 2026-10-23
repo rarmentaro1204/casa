@@ -1,4 +1,5 @@
 import { listDevices, rawThermostat } from './lib/meross.mjs';
+import { rawAc } from './lib/tuya.mjs';
 import { config as cfg, state, command, runScene, getSchedules, setSchedules } from './lib/core.mjs';
 
 const json = (data, status = 200) => Response.json(data, { status });
@@ -17,6 +18,12 @@ export default async (req) => {
       if (!pin) return json({ error: 'Imposta APP_PIN per usare questo endpoint' }, 403);
       const out = {};
       for (const d of cfg.devices.filter((x) => x.driver === 'meross')) out[d.id] = await rawThermostat(d).catch((e) => ({ error: e.message }));
+      return json(out);
+    }
+    if (path === 'tuya-debug') {
+      if (!pin) return json({ error: 'Imposta APP_PIN per usare questo endpoint' }, 403);
+      const out = {};
+      for (const d of cfg.devices.filter((x) => x.driver === 'tuya')) out[d.id] = await rawAc(d).catch((e) => ({ error: e.message }));
       return json(out);
     }
     if (path === 'state') return json(await state());

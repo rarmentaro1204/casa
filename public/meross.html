@@ -16,9 +16,11 @@
 <input id="pin" type="password" placeholder="PIN" autocomplete="off">
 <button id="go">Mostra dispositivi</button>
 <button id="dbg">Diagnosi valvole</button>
+<button id="tdbg">Diagnosi climatizzatori</button>
 <pre id="out"></pre>
 <script>
 document.getElementById('dbg').onclick = () => run('/api/meross-debug');
+document.getElementById('tdbg').onclick = () => run('/api/tuya-debug');
 document.getElementById('go').onclick = () => run('/api/meross-devices');
 async function run(url) {
   const out = document.getElementById('out');
