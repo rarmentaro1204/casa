@@ -59,3 +59,29 @@ export async function readThermostat(dev) {
   if (!d) throw new Error('MTS150 non trovata');
   return { current: d.temperature.room / 10, target: d.temperature.currentSet / 10, on: d.togglex?.onoff === 1 };
 }
+
+// Elenca hub e termovalvole dell'account, per compilare config/devices.json.
+async function cloud(path, data) {
+  const s = await login();
+  const params = Buffer.from(JSON.stringify(data)).toString('base64');
+  const nonce = crypto.randomBytes(8).toString('hex').toUpperCase();
+  const timestamp = Date.now();
+  const sign = md5(SECRET + timestamp + nonce + params);
+  const r = await fetch(`https://iot.meross.com${path}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Authorization: `Basic ${s.token}` },
+    body: new URLSearchParams({ params, sign, timestamp, nonce }),
+  }).then((x) => x.json());
+  if (r.apiStatus !== 0) throw new Error(`Meross ${path}: ${r.info}`);
+  return r.data;
+}
+
+export async function listDevices() {
+  const devs = await cloud('/v1/Device/devList', {});
+  const hubs = devs.filter((d) => /^msh/i.test(d.deviceType));
+  const out = [];
+  for (const h of hubs) {
+    const subs = await cloud('/v1/Hub/getSubDevices', { uuid: h.uuid }).catch(() => []);
+    out.push({ hubUuid: h.uuid, hubName: h.devName, valvole: subs.map((x) => ({ subId: x.subDeviceId, name: x.subDeviceName, type: x.subDeviceType })) });
+  }
+  return { hubs: out, altriDispositivi: devs.filter((d) => !/^msh/i.test(d.deviceType)).map((d) => ({ uuid: d.uuid, name: d.devName, type: d.deviceType })) };
+}

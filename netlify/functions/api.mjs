@@ -1,3 +1,4 @@
+import { listDevices } from './lib/meross.mjs';
 import { config as cfg, state, command, runScene, getSchedules, setSchedules } from './lib/core.mjs';
 
 const json = (data, status = 200) => Response.json(data, { status });
@@ -11,6 +12,7 @@ export default async (req) => {
   const body = req.method === 'POST' || req.method === 'PUT' ? await req.json().catch(() => ({})) : {};
   try {
     if (path === 'config') return json({ devices: cfg.devices.map(({ id, name, room, type }) => ({ id, name, room, type })), scenes: cfg.scenes.map(({ id, name, icon }) => ({ id, name, icon })) });
+    if (path === 'meross-devices') { if (!pin) return json({ error: 'Imposta APP_PIN per usare questo endpoint' }, 403); return json(await listDevices()); }
     if (path === 'state') return json(await state());
     if (path === 'command') {
       if (cfg.devices.find((d) => d.id === body.device)?.type === 'door' && !pin) return json({ error: 'Imposta APP_PIN per abilitare il portone' }, 403);
