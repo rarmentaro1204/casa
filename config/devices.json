@@ -10,8 +10,8 @@
     { "id": "valvola-bagno-finestra", "name": "Bagno finestra", "room": "Bagno", "type": "thermostat", "driver": "meross", "hubUuid": "2306284619448662080148e1e9cc143d", "subId": "03004499" },
     { "id": "valvola-cucina", "name": "Cucina", "room": "Cucina", "type": "thermostat", "driver": "meross", "hubUuid": "2306284619448662080148e1e9cc143d", "subId": "03006773" },
     { "id": "valvola-bagno-ingresso", "name": "Bagno ingresso", "room": "Bagno", "type": "thermostat", "driver": "meross", "hubUuid": "2306284619448662080148e1e9cc143d", "subId": "03003326" },
-    { "id": "clima-1", "name": "Climatizzatore", "room": "Da assegnare", "type": "ac", "driver": "tuya", "deviceId": "0252720324d7ebd27c60" },
-    { "id": "clima-2", "name": "Climatizzatore 2", "room": "Da assegnare", "type": "ac", "driver": "tuya", "deviceId": "0330316398cdac3c2659" }
+    { "id": "clima-1", "name": "Climatizzatore", "room": "Ingresso", "type": "ac", "driver": "tuya", "deviceId": "0252720324d7ebd27c60" },
+    { "id": "clima-2", "name": "Climatizzatore", "room": "Soggiorno", "type": "ac", "driver": "tuya", "deviceId": "0330316398cdac3c2659" }
   ],
   "scenes": [
     { "id": "buongiorno", "name": "Buongiorno", "icon": "☀️", "actions": [
