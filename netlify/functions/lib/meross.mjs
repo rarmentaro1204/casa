@@ -7,17 +7,20 @@ import mqtt from 'mqtt';
 const md5 = (s) => crypto.createHash('md5').update(s).digest('hex');
 const SECRET = '23x17ahWarFH6w29';
 let session;
+let apiBase = process.env.MEROSS_API || 'https://iotx-eu.meross.com';
 
-async function login() {
+async function login(retry = true) {
   if (session) return session;
   const params = Buffer.from(JSON.stringify({ email: process.env.MEROSS_EMAIL, password: md5(process.env.MEROSS_PASSWORD), encryption: 1, accountCountryCode: 'IT', mobileInfo: { deviceModel: 'Pixel', mobileOsVersion: '13', mobileOs: 'Android', uuid: crypto.randomUUID(), carrier: '' } })).toString('base64');
   const nonce = crypto.randomBytes(8).toString('hex').toUpperCase();
   const timestamp = Date.now();
   const sign = md5(SECRET + timestamp + nonce + params);
-  const r = await fetch('https://iot.meross.com/v1/Auth/signIn', {
+  const r = await fetch(`${apiBase}/v1/Auth/signIn`, {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Authorization: 'Basic' },
     body: new URLSearchParams({ params, sign, timestamp, nonce }),
   }).then((x) => x.json());
+  // L'account è in un'altra regione: Meross indica il dominio giusto.
+  if (r.apiStatus === 1030 && r.data?.domain && retry) { apiBase = r.data.domain.startsWith('http') ? r.data.domain : `https://${r.data.domain}`; return login(false); }
   if (r.apiStatus !== 0) throw new Error(`Meross login: ${r.info}`);
   session = { ...r.data, appId: md5(crypto.randomUUID()) };
   return session;
@@ -67,7 +70,7 @@ async function cloud(path, data) {
   const nonce = crypto.randomBytes(8).toString('hex').toUpperCase();
   const timestamp = Date.now();
   const sign = md5(SECRET + timestamp + nonce + params);
-  const r = await fetch(`https://iot.meross.com${path}`, {
+  const r = await fetch(`${apiBase}${path}`, {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Authorization: `Basic ${s.token}` },
     body: new URLSearchParams({ params, sign, timestamp, nonce }),
   }).then((x) => x.json());
