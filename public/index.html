@@ -56,7 +56,12 @@ dialog h2{margin:0 0 14px}dialog input,dialog select{font:inherit;padding:12px;b
 <dialog id="schDlg"><h2>Orari automatici</h2><div id="schList"></div>
   <h3>Nuovo orario</h3>
   <select id="schScene"></select>
-  <input id="schTime" type="time" value="07:30">
+  <div id="schOpts" style="display:none">
+    <input id="schTemp" type="number" step="0.5" min="16" max="30" placeholder="Temperatura (°C), facoltativa">
+    <select id="schMode"><option value="">Modalità: invariata</option><option value="cool">❄ Freddo</option><option value="heat">☀ Caldo</option></select>
+  </div>
+  <label class="mut">Dalle</label><input id="schTime" type="time" value="07:00">
+  <label class="mut" id="schEndLbl" style="display:none">Alle (si spegne)</label><input id="schEnd" type="time" style="display:none">
   <div class="days" id="schDays"></div>
   <div class="row" style="gap:10px"><button class="chip on" id="schAdd">Aggiungi</button><button class="chip" id="schClose">Chiudi</button></div>
 </dialog>
@@ -170,21 +175,45 @@ setInterval(() => { $('#clock').textContent = new Date().toLocaleString('it-IT',
 const DAYS = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
 $('#schDays').innerHTML = DAYS.map((d, i) => `<button class="chip on" data-d="${i + 1}">${d}</button>`).join('');
 $('#schDays').onclick = (e) => e.target.closest('button')?.classList.toggle('on');
+const dayText = (s) => (s.days.length === 7 ? 'ogni giorno' : s.days.map((d) => DAYS[d - 1]).join(' '));
 async function loadSch() {
   schedules = (await api('schedules')) || [];
-  $('#schScene').innerHTML = cfg.scenes.map((s) => `<option value="${s.id}">${s.icon} ${h(s.name)}</option>`).join('');
+  const devs = cfg.devices.filter((d) => ['ac', 'thermostat', 'light'].includes(d.type));
+  $('#schScene').innerHTML = '<optgroup label="Scene">' + cfg.scenes.map((s) => `<option value="scene:${s.id}">${s.icon} ${h(s.name)}</option>`).join('') + '</optgroup>'
+    + '<optgroup label="Dispositivi">' + devs.map((d) => `<option value="dev:${d.id}">${ICON[d.type]} ${h(d.name)} · ${h(d.room)}</option>`).join('') + '</optgroup>';
+  updSchForm();
   $('#schList').innerHTML = schedules.length ? schedules.map((s, i) => {
-    const sc = cfg.scenes.find((x) => x.id === s.scene);
-    return `<div class="sch"><span><b>${s.time}</b> ${sc ? sc.icon + ' ' + h(sc.name) : '?'} <span class="mut">${s.days.length === 7 ? 'ogni giorno' : s.days.map((d) => DAYS[d - 1]).join(' ')}</span></span><button class="chip" data-del="${i}">Elimina</button></div>`;
+    let what;
+    if (s.actions) { const d = cfg.devices.find((x) => x.id === s.actions[0].device); const c = s.actions[0].command; what = `${d ? ICON[d.type] + ' ' + h(d.name) + ' · ' + h(d.room) : '?'}${c.target ? ' ' + c.target + '°' : ''}`; }
+    else { const sc = cfg.scenes.find((x) => x.id === s.scene); what = sc ? sc.icon + ' ' + h(sc.name) : '?'; }
+    return `<div class="sch"><span><b>${s.time}${s.end ? '–' + s.end : ''}</b> ${what} <span class="mut">${dayText(s)}</span></span><button class="chip" data-del="${i}">Elimina</button></div>`;
   }).join('') : '<p class="mut">Nessun orario impostato.</p>';
 }
+function updSchForm() {
+  const [kind, id] = $('#schScene').value.split(':');
+  const d = kind === 'dev' ? cfg.devices.find((x) => x.id === id) : null;
+  $('#schOpts').style.display = d && (d.type === 'ac' || d.type === 'thermostat') ? '' : 'none';
+  $('#schMode').style.display = d?.type === 'ac' ? '' : 'none';
+  $('#schEnd').style.display = $('#schEndLbl').style.display = d ? '' : 'none';
+}
+$('#schScene').onchange = updSchForm;
 const saveSch = async () => { await api('schedules', { method: 'PUT', body: JSON.stringify({ schedules }) }); loadSch(); };
 $('#schBtn').onclick = async () => { await loadSch(); $('#schDlg').showModal(); };
 $('#schClose').onclick = () => $('#schDlg').close();
 $('#schList').onclick = (e) => { const i = e.target.dataset.del; if (i != null) { schedules.splice(+i, 1); saveSch(); } };
 $('#schAdd').onclick = () => {
   const days = [...document.querySelectorAll('#schDays .on')].map((b) => +b.dataset.d);
-  schedules.push({ id: Date.now().toString(36), scene: $('#schScene').value, time: $('#schTime').value, days, enabled: true });
+  const [kind, id] = $('#schScene').value.split(':');
+  const entry = { id: Date.now().toString(36), time: $('#schTime').value, days, enabled: true };
+  if (kind === 'scene') entry.scene = id;
+  else {
+    const on = { on: true }, temp = parseFloat($('#schTemp').value), mode = $('#schMode').value;
+    if (!isNaN(temp)) on.target = temp;
+    if (mode && $('#schMode').style.display !== 'none') on.mode = mode;
+    entry.actions = [{ device: id, command: on }];
+    if ($('#schEnd').value) { entry.end = $('#schEnd').value; entry.endActions = [{ device: id, command: { on: false } }]; }
+  }
+  schedules.push(entry);
   saveSch();
 };
 init();

@@ -40,13 +40,16 @@ export async function command(id, cmd) {
   await store().setJSON('state', st);
 }
 
+export async function runActions(actions) {
+  const list = actions.filter((a) => byId(a.device)?.type !== 'door'); // il portone non parte mai da automatismi
+  const res = await Promise.allSettled(list.map((a) => command(a.device, a.command)));
+  return res.map((r, i) => ({ device: list[i].device, ok: r.status === 'fulfilled', error: r.reason?.message }));
+}
+
 export async function runScene(sceneId) {
   const scene = config.scenes.find((s) => s.id === sceneId);
   if (!scene) throw new Error('Scena sconosciuta');
-  // Il portone non parte mai da scene, orari o automatismi: solo tocco manuale.
-  scene.actions = scene.actions.filter((a) => byId(a.device)?.type !== 'door');
-  const res = await Promise.allSettled(scene.actions.map((a) => command(a.device, a.command)));
-  return res.map((r, i) => ({ device: scene.actions[i].device, ok: r.status === 'fulfilled', error: r.reason?.message }));
+  return runActions(scene.actions);
 }
 
 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout')), ms))]);
