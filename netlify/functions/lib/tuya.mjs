@@ -25,16 +25,63 @@ async function getToken() { return (await req('GET', '/v1.0/token?grant_type=1')
 
 const commands = (id, list) => req('POST', `/v1.0/iot-03/devices/${id}/commands`, { commands: list });
 
+// Le funzioni supportate cambiano da modello a modello: le leggo da Tuya (e le tengo in cache).
+const specCache = new Map();
+const FAN_CODES = ['windspeed', 'fan_speed_enum', 'wind_speed'];
+const SWING_CODES = ['swing', 'switch_horizontal', 'switch_vertical', 'swing_3d'];
+
+async function specs(id) {
+  if (specCache.has(id)) return specCache.get(id);
+  const r = await req('GET', `/v1.0/iot-03/devices/${id}/specifications`);
+  const fns = Object.fromEntries((r.functions || []).map((f) => [f.code, { type: f.type, ...JSON.parse(f.values || '{}') }]));
+  const find = (codes) => codes.find((c) => fns[c]);
+  const t = fns.temp_set || {};
+  const sp = {
+    fns,
+    scale: t.scale || 0,
+    temp: { min: (t.min ?? 16) / 10 ** (t.scale || 0), max: (t.max ?? 30) / 10 ** (t.scale || 0), step: (t.step ?? 1) / 10 ** (t.scale || 0) },
+    modes: fns.mode?.range || [],
+    fanCode: find(FAN_CODES),
+    swingCodes: SWING_CODES.filter((c) => fns[c]?.type === 'Boolean'),
+    extras: ['eco', 'sleep', 'turbo', 'health', 'light', 'child_lock'].filter((c) => fns[c]?.type === 'Boolean'),
+  };
+  sp.fans = sp.fanCode ? fns[sp.fanCode].range || [] : [];
+  specCache.set(id, sp);
+  return sp;
+}
+
 export async function ac(dev, cmd) {
+  const sp = await specs(dev.deviceId);
   const list = [];
   if ('on' in cmd) list.push({ code: 'switch', value: cmd.on });
-  if ('target' in cmd) list.push({ code: 'temp_set', value: Math.round(cmd.target) });
-  if ('mode' in cmd) list.push({ code: 'mode', value: cmd.mode }); // cool|heat|auto|wind|dry
+  if ('target' in cmd) {
+    const v = Math.min(sp.temp.max, Math.max(sp.temp.min, cmd.target));
+    list.push({ code: 'temp_set', value: Math.round(v * 10 ** sp.scale) });
+  }
+  if ('mode' in cmd) {
+    if (!sp.modes.includes(cmd.mode)) throw new Error(`Modalità non supportata: ${cmd.mode}`);
+    list.push({ code: 'mode', value: cmd.mode });
+  }
+  if ('fan' in cmd) {
+    if (!sp.fanCode || !sp.fans.includes(cmd.fan)) throw new Error(`Velocità non supportata: ${cmd.fan}`);
+    list.push({ code: sp.fanCode, value: cmd.fan });
+  }
+  if ('swing' in cmd) sp.swingCodes.forEach((c) => list.push({ code: c, value: !!cmd.swing }));
+  for (const x of sp.extras) if (x in cmd) list.push({ code: x, value: !!cmd[x] });
   if (list.length) await commands(dev.deviceId, list);
 }
 
 export async function readAc(dev) {
-  const st = await req('GET', `/v1.0/iot-03/devices/${dev.deviceId}/status`);
+  const [sp, st] = await Promise.all([specs(dev.deviceId), req('GET', `/v1.0/iot-03/devices/${dev.deviceId}/status`)]);
   const g = (c) => st.find((x) => x.code === c)?.value;
-  return { on: g('switch'), target: g('temp_set'), current: g('temp_current'), mode: g('mode') };
+  const k = 10 ** sp.scale;
+  return {
+    on: g('switch'), mode: g('mode'),
+    target: g('temp_set') != null ? g('temp_set') / k : undefined,
+    current: g('temp_current') != null ? g('temp_current') / (g('temp_current') > 60 ? 10 : 1) : undefined,
+    fan: sp.fanCode ? g(sp.fanCode) : undefined,
+    swing: sp.swingCodes.length ? sp.swingCodes.some((c) => g(c)) : undefined,
+    extras: Object.fromEntries(sp.extras.map((c) => [c, !!g(c)])),
+    caps: { modes: sp.modes, fans: sp.fans, swing: sp.swingCodes.length > 0, extras: sp.extras, temp: sp.temp },
+  };
 }

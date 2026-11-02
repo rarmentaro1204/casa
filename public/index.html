@@ -32,6 +32,7 @@ main{align-items:start;display:grid;grid-template-columns:repeat(auto-fill,minma
 .card button{flex:1;min-height:64px;border-radius:16px;border:0;background:var(--panel2);color:var(--text);font-size:22px}
 .card button.big{font-size:18px}
 .card button.act{background:var(--acc);color:#1a1200;font-weight:700}
+.row.wrap{flex-wrap:wrap}.row.wrap button{min-height:52px;flex:1 1 30%;font-size:16px}.lbl{color:var(--mut);font-size:14px;margin-bottom:-6px}.card.dim h3{opacity:.7}
 .card button.cool.act{background:var(--cool)}.card button.heat.act{background:var(--hot)}
 .temp{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .temp b{font-size:46px;font-weight:300;font-variant-numeric:tabular-nums}
@@ -75,7 +76,7 @@ const demo = {
     {id:'t2',name:'Termovalvola',room:'Camera',type:'thermostat'},{id:'a2',name:'Climatizzatore',room:'Camera',type:'ac'},
     {id:'p1',name:'Portone',room:'Ingresso',type:'door'},{id:'l3',name:'Luce',room:'Cucina',type:'light'},{id:'s3',name:'Tapparella',room:'Cucina',type:'shutter'}],
     scenes: [{id:'buongiorno',name:'Buongiorno',icon:'☀️'},{id:'buonanotte',name:'Buonanotte',icon:'🌙'},{id:'esco',name:'Esco di casa',icon:'🚪'}] },
-  st: { t1:{current:20.4,target:21,on:true,online:true}, t2:{current:19.1,target:19,on:true,online:true}, a1:{on:false,target:24,mode:'cool',online:true}, a2:{on:false,target:24,mode:'cool',online:true}, l1:{on:true,online:true} },
+  st: { t1:{current:20.4,target:21,on:true,online:true}, t2:{current:19.1,target:19,on:true,online:true}, a1:{on:true,target:24,mode:'cool',fan:'auto',swing:false,online:true,caps:{modes:['cool','heat','auto','dry','wind'],fans:['auto','low','mid','high'],swing:true,extras:['eco','sleep'],temp:{min:16,max:30,step:1}}}, a2:{on:false,target:22,mode:'heat',fan:'low',online:true,caps:{modes:['cool','heat','auto'],fans:['auto','low','high'],swing:false,extras:[],temp:{min:16,max:30,step:1}}}, l1:{on:true,online:true} },
 };
 async function api(path, opts = {}) {
   if (DEMO) return demoApi(path, opts);
@@ -95,6 +96,9 @@ function demoApi(path, opts) {
 }
 
 // ---------- UI ----------
+const MODE = { cool: ['❄', 'Freddo'], heat: ['☀', 'Caldo'], hot: ['☀', 'Caldo'], auto: ['🔄', 'Auto'], dry: ['💧', 'Deumidifica'], wet: ['💧', 'Deumidifica'], wind: ['🌀', 'Ventola'], fan: ['🌀', 'Ventola'] };
+const FAN = { auto: 'Auto', low: 'Bassa', mid: 'Media', middle: 'Media', high: 'Alta', mute: 'Silenzioso', turbo: 'Turbo', strong: 'Forte', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5' };
+const EXTRA = { eco: '🌿 Eco', sleep: '😴 Notte', turbo: '⚡ Turbo', health: '🍃 Salute', light: '💡 Display', child_lock: '🔒 Blocco' };
 const ICON = { door: '🚪', shutter: '🪟', light: '💡', thermostat: '🌡️', ac: '❄️' };
 const toast = (m) => { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); };
 const h = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -126,11 +130,17 @@ function card(d) {
   if (d.type === 'thermostat') return `<div class="card">${head}<div class="temp"><div><b>${s.current ?? '--'}°</b><div class="mut">attuale</div></div>
     <div class="set"><button ${a({ target: (s.target ?? 20) - 0.5 })}>−</button><div style="text-align:center"><b style="font-size:34px">${s.target ?? '--'}°</b><div class="mut">impostata</div></div><button ${a({ target: (s.target ?? 20) + 0.5 })}>+</button></div></div>
     <div class="row"><button class="big heat ${s.on ? 'act' : ''}" ${a({ on: !s.on })}>${s.on ? 'Attiva' : 'Spenta'}</button></div></div>`;
-  if (d.type === 'ac') return `<div class="card">${head}<div class="temp"><div class="mut">${s.current != null ? s.current + '° attuale' : ''}</div>
-    <div class="set"><button ${a({ target: (s.target ?? 24) - 1 })}>−</button><b style="font-size:42px">${s.target ?? '--'}°</b><button ${a({ target: (s.target ?? 24) + 1 })}>+</button></div></div>
-    <div class="row"><button class="big ${s.on ? 'act' : ''}" ${a({ on: !s.on })}>${s.on ? 'Acceso' : 'Spento'}</button>
-    <button class="big cool ${s.mode === 'cool' ? 'act' : ''}" ${a({ mode: 'cool' })}>❄ Freddo</button>
-    <button class="big heat ${s.mode === 'heat' ? 'act' : ''}" ${a({ mode: 'heat' })}>☀ Caldo</button></div></div>`;
+  if (d.type === 'ac') {
+    const c = s.caps || { modes: ['cool', 'heat', 'auto', 'dry', 'wind'], fans: ['auto', 'low', 'mid', 'high'], swing: true, extras: ['eco', 'sleep'], temp: { min: 16, max: 30, step: 1 } };
+    const step = c.temp.step || 1, t = s.target ?? 24;
+    const btn = (cmd, label, active, cls = '') => `<button class="big ${cls} ${active ? 'act' : ''}" ${a(cmd)}>${label}</button>`;
+    return `<div class="card ${s.on ? '' : 'dim'}">${head}<div class="temp"><div class="mut">${s.current != null ? s.current + '° attuale' : ''}</div>
+    <div class="set"><button ${a({ target: Math.max(c.temp.min, t - step) })}>−</button><b style="font-size:42px">${s.target ?? '--'}°</b><button ${a({ target: Math.min(c.temp.max, t + step) })}>+</button></div></div>
+    <div class="row">${btn({ on: !s.on }, s.on ? '⏻ Acceso' : '⏻ Spento', s.on)}</div>
+    <div class="lbl">Modalità</div><div class="row wrap">${c.modes.map((m) => btn({ mode: m }, (MODE[m] || [m, m])[0] + ' ' + (MODE[m] || [m, m])[1], s.mode === m, m === 'heat' || m === 'hot' ? 'heat' : m === 'cool' ? 'cool' : '')).join('')}</div>
+    ${c.fans.length ? `<div class="lbl">Ventola</div><div class="row wrap">${c.fans.map((f) => btn({ fan: f }, FAN[f] || f, s.fan === f)).join('')}</div>` : ''}
+    ${c.swing || c.extras.length ? `<div class="lbl">Opzioni</div><div class="row wrap">${c.swing ? btn({ swing: !s.swing }, '↕ Oscilla', s.swing) : ''}${c.extras.map((x) => btn({ [x]: !(s.extras?.[x] ?? s[x]) }, (EXTRA[x] || x), s.extras?.[x] ?? s[x])).join('')}</div>` : ''}</div>`;
+  }
   return '';
 }
 
