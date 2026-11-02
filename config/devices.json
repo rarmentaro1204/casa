@@ -68,6 +68,24 @@
       "driver": "meross",
       "hubUuid": "UUID_HUB_MSH300",
       "subName": "Bagno ingresso"
+    },
+    {
+      "id": "valvola-cameretta",
+      "name": "Termovalvola",
+      "room": "Cameretta",
+      "type": "thermostat",
+      "driver": "meross",
+      "hubUuid": "UUID_HUB_MSH300",
+      "subName": "Cameretta"
+    },
+    {
+      "id": "valvola-bagno-finestra",
+      "name": "Termovalvola",
+      "room": "Bagno",
+      "type": "thermostat",
+      "driver": "meross",
+      "hubUuid": "UUID_HUB_MSH300",
+      "subName": "Bagno finestra"
     }
   ],
   "scenes": [
@@ -121,19 +139,19 @@
       "id": "inverno",
       "name": "Casa inverno",
       "icon": "🔥",
-      "info": "Lun–Ven 18–20 · Sab–Dom 7–9 e 18–20 · 21°"
+      "info": "Lun–Ven 18–20 · Sab–Dom 7–9 e 18–20 · 21° · Cameretta e bagno finestra 15°"
     },
     {
       "id": "fuori",
       "name": "Esco di casa",
       "icon": "🚪",
-      "info": "Valvole spente (bagno resta al massimo)"
+      "info": "Soggiorno e cucina spenti · bagno ingresso al massimo · camera e bagno finestra 15°"
     },
     {
       "id": "estate",
       "name": "Casa estate",
       "icon": "☀️",
-      "info": "Tutto spento, bagno al massimo"
+      "info": "Tutto spento, solo bagno ingresso al massimo"
     }
   ],
   "heating": {
@@ -162,6 +180,16 @@
           "18:00",
           "20:00"
         ]
+      ]
+    },
+    "base": {
+      "devices": [
+        "valvola-cameretta",
+        "valvola-bagno-finestra"
+      ],
+      "temp": 15,
+      "offIn": [
+        "estate"
       ]
     }
   }

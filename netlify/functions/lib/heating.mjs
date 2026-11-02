@@ -17,6 +17,7 @@ export function desired(mode, now = romeNow()) {
   const slots = now.day <= 5 ? h.winter.weekdays : h.winter.weekend;
   const inSlot = mode === 'inverno' && slots.some(([a, b]) => now.hhmm >= a && now.hhmm < b);
   for (const id of h.always) out[id] = { on: true, target: 'max' };
+  for (const id of h.base.devices) out[id] = h.base.offIn.includes(mode) ? { on: false } : { on: true, target: h.base.temp };
   for (const id of h.group) out[id] = inSlot ? { on: true, target: h.temp } : { on: false };
   return out;
 }
