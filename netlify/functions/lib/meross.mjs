@@ -66,6 +66,17 @@ async function send(uuid, method, namespace, payload) {
   });
 }
 
+// hubUuid in configurazione: UUID vero, nome dell'hub nell'app, oppure "auto" (se l'account ha un solo hub MSH).
+const hubs = new Map();
+async function resolveHub(v, s) {
+  if (hubs.has(v)) return hubs.get(v);
+  const list = (await cloud('/v1/Device/devList', {}, s.token)).filter((d) => /^msh/i.test(d.deviceType || ''));
+  const f = list.find((d) => d.uuid === v) || list.find((d) => norm(d.devName) === norm(v)) || (list.length === 1 ? list[0] : null);
+  if (!f) throw new Error(list.length ? `Meross: più hub trovati (${list.map((d) => d.devName).join(', ')}), scrivi il nome in hubUuid` : 'Meross: nessun hub MSH trovato nell\'account');
+  hubs.set(v, f.uuid);
+  return f.uuid;
+}
+
 // Fotografia di tutte le valvole dell'hub (cache breve per non aprire 4 connessioni uguali).
 const snaps = new Map();
 export function snapshot(hubUuid, fresh = false) {
@@ -73,17 +84,18 @@ export function snapshot(hubUuid, fresh = false) {
   if (!fresh && c && Date.now() - c.at < 10000) return c.p;
   const p = (async () => {
     const s = await login();
-    const subs = (await cloud('/v1/Hub/getSubDevices', { uuid: hubUuid }, s.token)).filter((x) => /mts/i.test(x.subDeviceType || ''));
+    const hub = await resolveHub(hubUuid, s);
+    const subs = (await cloud('/v1/Hub/getSubDevices', { uuid: hub }, s.token)).filter((x) => /mts/i.test(x.subDeviceType || ''));
     const ids = subs.map((x) => ({ id: x.subDeviceId }));
     const [all, bat] = await Promise.all([
-      send(hubUuid, 'GET', 'Appliance.Hub.Mts100.All', { all: ids }),
-      send(hubUuid, 'GET', 'Appliance.Hub.Battery', { battery: ids }).catch(() => ({})),
+      send(hub, 'GET', 'Appliance.Hub.Mts100.All', { all: ids }),
+      send(hub, 'GET', 'Appliance.Hub.Battery', { battery: ids }).catch(() => ({})),
     ]);
     return subs.map((x) => {
       const d = all.all?.find((a) => a.id === x.subDeviceId);
       const b = bat.battery?.find((a) => a.id === x.subDeviceId);
       const t = d?.temperature;
-      return { id: x.subDeviceId, name: x.subDeviceName, online: d?.online?.status === 1, on: d?.togglex?.onoff === 1,
+      return { hub, id: x.subDeviceId, name: x.subDeviceName, online: d?.online?.status === 1, on: d?.togglex?.onoff === 1,
         current: t ? t.room / 10 : undefined, target: t ? t.currentSet / 10 : undefined, min: t ? t.min / 10 : 5, max: t ? t.max / 10 : 35, batteryMv: b?.value };
     });
   })();
@@ -114,11 +126,11 @@ async function find(dev) {
 export async function thermostat(dev, cmd) {
   const v = await find(dev);
   if (!v.online) throw new Error(`Valvola "${v.name}" offline: controlla pile e distanza dall'hub`);
-  if ('on' in cmd) await send(dev.hubUuid, 'SET', 'Appliance.Hub.ToggleX', { togglex: [{ id: v.id, onoff: cmd.on ? 1 : 0 }] });
+  if ('on' in cmd) await send(v.hub, 'SET', 'Appliance.Hub.ToggleX', { togglex: [{ id: v.id, onoff: cmd.on ? 1 : 0 }] });
   if ('target' in cmd) {
     const t = cmd.target === 'max' ? v.max : cmd.target;
-    await send(dev.hubUuid, 'SET', 'Appliance.Hub.Mts100.Mode', { mode: [{ id: v.id, state: 0 }] }); // 0 = manuale
-    await send(dev.hubUuid, 'SET', 'Appliance.Hub.Mts100.Temperature', { temperature: [{ id: v.id, custom: Math.round(t * 10) }] });
+    await send(v.hub, 'SET', 'Appliance.Hub.Mts100.Mode', { mode: [{ id: v.id, state: 0 }] }); // 0 = manuale
+    await send(v.hub, 'SET', 'Appliance.Hub.Mts100.Temperature', { temperature: [{ id: v.id, custom: Math.round(t * 10) }] });
   }
   snaps.delete(dev.hubUuid);
 }

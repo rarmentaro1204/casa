@@ -26,20 +26,12 @@
       "deviceId": "ID_SONOFF_CITOFONO"
     },
     {
-      "id": "clima-soggiorno",
-      "name": "Climatizzatore",
-      "room": "Soggiorno",
-      "type": "ac",
-      "driver": "tuya",
-      "deviceId": "ID_TUYA_ZEPHIR"
-    },
-    {
       "id": "valvola-soggiorno",
       "name": "Termovalvola",
       "room": "Soggiorno",
       "type": "thermostat",
       "driver": "meross",
-      "hubUuid": "UUID_HUB_MSH300",
+      "hubUuid": "auto",
       "subName": "Soggiorno"
     },
     {
@@ -48,7 +40,7 @@
       "room": "Soggiorno",
       "type": "thermostat",
       "driver": "meross",
-      "hubUuid": "UUID_HUB_MSH300",
+      "hubUuid": "auto",
       "subName": "Soggiorno sud"
     },
     {
@@ -57,7 +49,7 @@
       "room": "Cucina",
       "type": "thermostat",
       "driver": "meross",
-      "hubUuid": "UUID_HUB_MSH300",
+      "hubUuid": "auto",
       "subName": "Cucina"
     },
     {
@@ -66,7 +58,7 @@
       "room": "Bagno",
       "type": "thermostat",
       "driver": "meross",
-      "hubUuid": "UUID_HUB_MSH300",
+      "hubUuid": "auto",
       "subName": "Bagno ingresso"
     },
     {
@@ -75,7 +67,7 @@
       "room": "Cameretta",
       "type": "thermostat",
       "driver": "meross",
-      "hubUuid": "UUID_HUB_MSH300",
+      "hubUuid": "auto",
       "subName": "Cameretta"
     },
     {
@@ -84,8 +76,24 @@
       "room": "Bagno",
       "type": "thermostat",
       "driver": "meross",
-      "hubUuid": "UUID_HUB_MSH300",
+      "hubUuid": "auto",
       "subName": "Bagno finestra"
+    },
+    {
+      "id": "clima-soggiorno",
+      "name": "Climatizzatore",
+      "room": "Soggiorno",
+      "type": "ac",
+      "driver": "tuya",
+      "deviceId": "0252720324d7ebd27c60"
+    },
+    {
+      "id": "clima-camera",
+      "name": "Climatizzatore",
+      "room": "Camera",
+      "type": "ac",
+      "driver": "tuya",
+      "deviceId": "0330316398cdac3c2659"
     }
   ],
   "scenes": [
@@ -127,6 +135,12 @@
         },
         {
           "device": "clima-soggiorno",
+          "command": {
+            "on": false
+          }
+        },
+        {
+          "device": "clima-camera",
           "command": {
             "on": false
           }
