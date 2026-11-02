@@ -56,6 +56,16 @@ async function definitions(id) {
   if (!defs.some((d) => d.code === 'mode')) defs = defs.concat(grab(await req('GET', `/v1.0/devices/${id}/specifications`).catch(() => null)));
   const fns = {};
   for (const d of defs) fns[d.code] = { ...(fns[d.code] || {}), type: d.type, ...parseValues(d.values) };
+  // Prodotti recenti: i valori ammessi stanno nel "modello" del dispositivo.
+  if (!fns.mode?.range?.length) {
+    const m = await req('GET', `/v2.0/cloud/thing/${id}/model`).catch(() => null);
+    try {
+      for (const sv of JSON.parse(m?.model || '{}').services || []) for (const p of sv.properties || []) {
+        const ts = p.typeSpec || {};
+        fns[p.code] = { ...(fns[p.code] || {}), ...ts, type: ts.type || fns[p.code]?.type };
+      }
+    } catch { /* modello non leggibile */ }
+  }
   return fns;
 }
 
@@ -73,8 +83,8 @@ async function specs(id) {
     temp: { min: (t.min ?? 16 * k) / k, max: (t.max ?? 30 * k) / k, step: (t.step ?? k) / k },
     modes: fns.mode?.range || [],
     fanCode: find(FAN_CODES),
-    swingCodes: SWING_CODES.filter((c) => fns[c]?.type === 'Boolean'),
-    extras: ['eco', 'sleep', 'turbo', 'health', 'light', 'child_lock'].filter((c) => fns[c]?.type === 'Boolean'),
+    swingCodes: SWING_CODES.filter((c) => /^bool/i.test(fns[c]?.type || '')),
+    extras: ['eco', 'sleep', 'turbo', 'health', 'light', 'child_lock'].filter((c) => /^bool/i.test(fns[c]?.type || '')),
   };
   sp.temp.min = Math.max(sp.temp.min, 16); sp.temp.max = Math.min(sp.temp.max, 32);
   if (sp.temp.step < 0.5) sp.temp.step = 0.5;
@@ -117,6 +127,6 @@ export async function readAc(dev) {
     fan: sp.fanCode ? g(sp.fanCode) : undefined,
     swing: sp.swingCodes.length ? sp.swingCodes.some((c) => g(c)) : undefined,
     extras: Object.fromEntries(sp.extras.map((c) => [c, !!g(c)])),
-    caps: { codes: sp.codes, modes: sp.modes, fans: sp.fans, swing: sp.swingCodes.length > 0, extras: sp.extras, temp: sp.temp },
+    caps: { modeRaw: sp.fns.mode, codes: sp.codes, modes: sp.modes, fans: sp.fans, swing: sp.swingCodes.length > 0, extras: sp.extras, temp: sp.temp },
   };
 }
