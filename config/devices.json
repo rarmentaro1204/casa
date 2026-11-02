@@ -85,7 +85,7 @@
       "room": "Soggiorno",
       "type": "ac",
       "driver": "tuya",
-      "deviceId": "0252720324d7ebd27c60"
+      "deviceId": "0330316398cdac3c2659"
     },
     {
       "id": "clima-camera",
@@ -93,7 +93,7 @@
       "room": "Camera",
       "type": "ac",
       "driver": "tuya",
-      "deviceId": "0330316398cdac3c2659"
+      "deviceId": "0252720324d7ebd27c60"
     }
   ],
   "scenes": [
