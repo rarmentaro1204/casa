@@ -45,9 +45,11 @@ async function login() {
 async function send(uuid, method, namespace, payload) {
   const s = await login();
   const appId = md5(crypto.randomUUID());
+  const uid = String(s.userId ?? s.userid ?? s.uid ?? '');
+  if (!uid || !s.key) throw new Error(`Meross: risposta di login inattesa (campi ricevuti: ${Object.keys(s).join(', ') || 'nessuno'})`);
   const host = s.mqttDomain || 'iotx-eu.meross.com';
-  const client = mqtt.connect(`mqtts://${host}:2001`, { clientId: `app:${appId}`, username: s.userId, password: md5(s.userId + s.key) });
-  const respTopic = `/app/${s.userId}-${appId}/subscribe`;
+  const client = mqtt.connect(`mqtts://${host}:2001`, { clientId: `app:${appId}`, username: uid, password: md5(uid + s.key) });
+  const respTopic = `/app/${uid}-${appId}/subscribe`;
   return new Promise((resolve, reject) => {
     const t = setTimeout(() => { client.end(true); reject(new Error('Meross: timeout (hub spento o offline?)')); }, 8000);
     client.on('error', (e) => { clearTimeout(t); client.end(true); reject(e); });
