@@ -28,6 +28,7 @@ Il pulsante **🔧 Valvole** interroga l'hub Meross e mostra nome, online/offlin
 
 ## Note importanti
 - **Tapparelle**: servono 2 Mini R4 per tapparella (SU e GIÙ). In eWeLink imposta su entrambi "Inching" = tempo di corsa. Il software spegne sempre il verso opposto prima di accendere.
-- **Portone**: Mini R4 con Inching 1-2 s in parallelo al pulsante apriporta. Verifica la tensione dell'impianto citofonico (un Mini R4 non è un contatto pulito: in caso di dubbi usa un modulo a contatto libero) e fai fare il collegamento a un elettricista. L'app lo apre solo con tocco lungo e APP_PIN, mai da scene/orari.
+- **Citofono (portone del palazzo)**: SwitchBot Bot attaccato sopra il pulsante apriporta, nessuna modifica all'impianto. Serve SwitchBot Hub per il controllo da remoto. Si apre solo con tocco lungo e APP_PIN, mai da scene/orari.
+- **Serratura SwitchBot**: stessa API; variabili `SWITCHBOT_TOKEN` e `SWITCHBOT_SECRET` (app SwitchBot → Profilo → Preferenze → Opzioni sviluppatore). Lo sblocco è solo manuale (tocco lungo + APP_PIN).
 - **Meross e Tuya sono sperimentali**: protocolli non ufficiali / codici che variano per modello, non testati su dispositivi reali.
 - **Alexa**: collega le skill ufficiali eWeLink e Meross per le routine vocali; non usarla per il portone.

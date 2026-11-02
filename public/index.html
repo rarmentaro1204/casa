@@ -81,10 +81,10 @@ const demo = {
     {id:'t1',name:'Termovalvola',room:'Soggiorno',type:'thermostat'},{id:'a1',name:'Climatizzatore',room:'Soggiorno',type:'ac'},
     {id:'s2',name:'Tapparella',room:'Camera',type:'shutter'},{id:'l2',name:'Luce',room:'Camera',type:'light'},
     {id:'t2',name:'Termovalvola',room:'Camera',type:'thermostat'},{id:'a2',name:'Climatizzatore',room:'Camera',type:'ac'},
-    {id:'p1',name:'Portone',room:'Ingresso',type:'door'},{id:'l3',name:'Luce',room:'Cucina',type:'light'},{id:'s3',name:'Tapparella',room:'Cucina',type:'shutter'}],
+    {id:'p1',name:'Portone',room:'Ingresso',type:'door'},{id:'k1',name:'Serratura',room:'Ingresso',type:'lock'},{id:'l3',name:'Luce',room:'Cucina',type:'light'},{id:'s3',name:'Tapparella',room:'Cucina',type:'shutter'}],
     modes: [{id:'inverno',name:'Casa inverno',icon:'🔥',info:'Lun–Ven 18–20 · Sab–Dom 7–9 e 18–20 · 21°'},{id:'fuori',name:'Esco di casa',icon:'🚪',info:'Valvole spente (bagno resta al massimo)'},{id:'estate',name:'Casa estate',icon:'☀️',info:'Tutto spento, bagno al massimo'}],
     scenes: [{id:'buongiorno',name:'Buongiorno',icon:'☀️'},{id:'buonanotte',name:'Buonanotte',icon:'🌙'}] },
-  st: { t1:{current:20.4,target:21,on:true,online:true}, t2:{current:19.1,target:19,on:true,online:true}, a1:{on:true,target:24,mode:'cool',fan:'auto',swing:false,online:true,caps:{modes:['cool','heat','auto','dry','wind'],fans:['auto','low','mid','high'],swing:true,extras:['eco','sleep'],temp:{min:16,max:30,step:1}}}, a2:{on:false,target:22,mode:'heat',fan:'low',online:true,caps:{modes:['cool','heat','auto'],fans:['auto','low','high'],swing:false,extras:[],temp:{min:16,max:30,step:1}}}, l1:{on:true,online:true} },
+  st: { t1:{current:20.4,target:21,on:true,online:true}, t2:{current:19.1,target:19,on:true,online:true}, a1:{on:true,target:24,mode:'cool',fan:'auto',swing:false,online:true,caps:{modes:['cool','heat','auto','dry','wind'],fans:['auto','low','mid','high'],swing:true,extras:['eco','sleep'],temp:{min:16,max:30,step:1}}}, a2:{on:false,target:22,mode:'heat',fan:'low',online:true,caps:{modes:['cool','heat','auto'],fans:['auto','low','high'],swing:false,extras:[],temp:{min:16,max:30,step:1}}}, l1:{on:true,online:true}, k1:{locked:true,battery:92,online:true} },
 };
 async function api(path, opts = {}) {
   if (DEMO) return demoApi(path, opts);
@@ -110,7 +110,7 @@ function demoApi(path, opts) {
 const MODE = { cool: ['❄', 'Freddo'], cold: ['❄', 'Freddo'], heat: ['☀', 'Caldo'], hot: ['☀', 'Caldo'], auto: ['🔄', 'Auto'], dry: ['💧', 'Deumidifica'], wet: ['💧', 'Deumidifica'], wind: ['🌀', 'Ventola'], fan: ['🌀', 'Ventola'] };
 const FAN = { auto: 'Auto', low: 'Bassa', mid: 'Media', middle: 'Media', high: 'Alta', mute: 'Silenzioso', turbo: 'Turbo', strong: 'Forte', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5' };
 const EXTRA = { eco: '🌿 Eco', sleep: '😴 Notte', turbo: '⚡ Turbo', health: '🍃 Salute', light: '💡 Display', child_lock: '🔒 Blocco' };
-const ICON = { door: '🚪', shutter: '🪟', light: '💡', thermostat: '🌡️', ac: '❄️' };
+const ICON = { lock: '🔐', door: '🚪', shutter: '🪟', light: '💡', thermostat: '🌡️', ac: '❄️' };
 const toast = (m) => { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); };
 const h = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -133,6 +133,7 @@ function card(d) {
   const dot = s.online === false ? '<i class="dot off" title="offline"></i>' : '';
   const head = `<h3><span>${ICON[d.type]} ${h(d.name)} <small>${room === 'Tutte' ? h(d.room) : ''}</small></span>${dot}</h3>${s.online === false && s.error ? `<div class="mut" style="color:var(--bad);user-select:text">${h(s.error)}</div>` : ''}`;
   if (d.type === 'light') return `<div class="card">${head}<div class="row"><button class="big ${s.on ? 'act' : ''}" ${a({ on: !s.on })}>${s.on ? 'Accesa' : 'Spenta'}</button></div></div>`;
+  if (d.type === 'lock') return `<div class="card">${head}<div class="temp"><b style="font-size:34px">${s.locked === undefined ? '--' : s.locked ? '🔒 Chiusa' : '🔓 Aperta'}</b>${s.battery != null ? `<span class="mut">pila ${s.battery}%</span>` : ''}</div><div class="row"><button class="big ${s.locked ? 'act' : ''}" ${a({ locked: true })}>Chiudi</button><button class="big" data-door="${d.id}" data-hold='{"locked":false}'>Tieni premuto per aprire</button></div></div>`;
   if (d.type === 'door') return `<div class="card">${head}<button class="big hold" data-door="${d.id}">Tieni premuto per aprire</button></div>`;
   if (d.type === 'shutter') return `<div class="card">${head}<div class="row">
     <button class="${s.action === 'up' ? 'act' : ''}" ${a({ action: 'up' })}>▲</button>
@@ -176,7 +177,7 @@ let holdT;
 document.addEventListener('pointerdown', (e) => {
   const b = e.target.closest('[data-door]'); if (!b) return;
   b.style.background = 'var(--hot)';
-  holdT = setTimeout(async () => { try { await api('command', { method: 'POST', body: JSON.stringify({ device: b.dataset.door, command: { open: true } }) }); toast('Portone aperto 🚪'); navigator.vibrate?.(80); } catch (err) { toast('Errore: ' + err.message); } }, 1200);
+  holdT = setTimeout(async () => { try { await api('command', { method: 'POST', body: JSON.stringify({ device: b.dataset.door, command: b.dataset.hold ? JSON.parse(b.dataset.hold) : { open: true } }) }); toast('Aperto 🔓'); refresh(); navigator.vibrate?.(80); } catch (err) { toast('Errore: ' + err.message); } }, 1200);
 });
 ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => document.addEventListener(t, () => { clearTimeout(holdT); document.querySelectorAll('[data-door]').forEach((b) => (b.style.background = '')); }, true));
 
@@ -202,7 +203,7 @@ async function loadDevices() {
   try {
     const r = await api('discover');
     const sec = (title, x) => `<h3>${title}</h3>` + (x.error ? `<p><span class="tag bad">Errore</span> ${h(x.error)}</p>` : x.devices.map((d) => `<div class="vrow"><span><b>${h(d.name)}</b><br><span class="mut" style="user-select:text">${h(d.id)}</span></span><span class="tag ${d.online ? 'ok' : 'bad'}">${d.online ? 'online' : 'offline'}</span></div>`).join('') || '<p class="mut">Nessun dispositivo.</p>');
-    $('#devList').innerHTML = sec('Sonoff (eWeLink)', r.ewelink) + sec('Climatizzatori (Tuya)', r.tuya);
+    $('#devList').innerHTML = sec('Sonoff (eWeLink)', r.ewelink) + sec('Climatizzatori (Tuya)', r.tuya) + sec('SwitchBot', r.switchbot || { devices: [] });
   } catch (e) { $('#devList').innerHTML = `<p class="mut">Errore: ${h(e.message)}</p>`; }
 }
 $('#valBtn').onclick = () => { $('#valDlg').showModal(); loadValves(); loadDevices(); };

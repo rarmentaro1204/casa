@@ -2,6 +2,7 @@ import { getMode, setMode } from './lib/heating.mjs';
 import { listValves } from './lib/meross.mjs';
 import * as ewelink from './lib/ewelink.mjs';
 import * as tuya from './lib/tuya.mjs';
+import * as switchbot from './lib/switchbot.mjs';
 import { config as cfg, state, command, runScene, getSchedules, setSchedules } from './lib/core.mjs';
 
 const json = (data, status = 200) => Response.json(data, { status });
@@ -19,7 +20,7 @@ export default async (req) => {
     if (path === 'mode') return json(await setMode(body.mode));
     if (path === 'discover') {
       const t = async (f) => { try { return { devices: await f() }; } catch (e) { return { error: e.message }; } };
-      return json({ ewelink: await t(ewelink.listDevices), tuya: await t(tuya.listDevices) });
+      return json({ ewelink: await t(ewelink.listDevices), tuya: await t(tuya.listDevices), switchbot: await t(switchbot.listDevices) });
     }
     if (path === 'valves') {
       const hubs = [...new Set(cfg.devices.filter((d) => d.driver === 'meross').map((d) => d.hubUuid))];
@@ -30,7 +31,7 @@ export default async (req) => {
     }
     if (path === 'state') return json(await state());
     if (path === 'command') {
-      if (cfg.devices.find((d) => d.id === body.device)?.type === 'door' && !pin) return json({ error: 'Imposta APP_PIN per abilitare il portone' }, 403);
+      if (['door', 'lock'].includes(cfg.devices.find((d) => d.id === body.device)?.type) && !pin) return json({ error: 'Imposta APP_PIN per abilitare portone e serratura' }, 403);
  await command(body.device, body.command); return json({ ok: true }); }
     if (path === 'scene') return json(await runScene(body.scene));
     if (path === 'schedules' && req.method === 'GET') return json(await getSchedules());

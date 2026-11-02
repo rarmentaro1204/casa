@@ -22,8 +22,8 @@
       "name": "Portone",
       "room": "Ingresso",
       "type": "door",
-      "driver": "ewelink",
-      "deviceId": "ID_SONOFF_CITOFONO"
+      "driver": "switchbot",
+      "deviceId": "NOME_BOT_CITOFONO"
     },
     {
       "id": "valvola-soggiorno",
@@ -94,6 +94,14 @@
       "type": "ac",
       "driver": "tuya",
       "deviceId": "0252720324d7ebd27c60"
+    },
+    {
+      "id": "porta-ingresso",
+      "name": "Serratura",
+      "room": "Ingresso",
+      "type": "lock",
+      "driver": "switchbot",
+      "deviceId": "NOME_SERRATURA_SWITCHBOT"
     }
   ],
   "scenes": [
