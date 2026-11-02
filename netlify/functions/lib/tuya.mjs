@@ -47,21 +47,37 @@ const specCache = new Map();
 const FAN_CODES = ['windspeed', 'fan_speed_enum', 'wind_speed'];
 const SWING_CODES = ['swing', 'switch_horizontal', 'switch_vertical', 'swing_3d'];
 
+const parseValues = (v) => { try { return typeof v === 'string' ? JSON.parse(v || '{}') : v || {}; } catch { return {}; } };
+
+// Le definizioni possono stare in "functions", in "status" o solo nell'API vecchia: le unisco tutte.
+async function definitions(id) {
+  const grab = (r) => [...(r?.functions || []), ...(r?.status || [])];
+  let defs = grab(await req('GET', `/v1.0/iot-03/devices/${id}/specifications`).catch(() => null));
+  if (!defs.some((d) => d.code === 'mode')) defs = defs.concat(grab(await req('GET', `/v1.0/devices/${id}/specifications`).catch(() => null)));
+  const fns = {};
+  for (const d of defs) fns[d.code] = { ...(fns[d.code] || {}), type: d.type, ...parseValues(d.values) };
+  return fns;
+}
+
 async function specs(id) {
   if (specCache.has(id)) return specCache.get(id);
-  const r = await req('GET', `/v1.0/iot-03/devices/${id}/specifications`);
-  const fns = Object.fromEntries((r.functions || []).map((f) => [f.code, { type: f.type, ...JSON.parse(f.values || '{}') }]));
+  const [fns, st] = await Promise.all([definitions(id), req('GET', `/v1.0/iot-03/devices/${id}/status`)]);
   const find = (codes) => codes.find((c) => fns[c]);
   const t = fns.temp_set || {};
+  const raw = st.find((x) => x.code === 'temp_set')?.value;
+  // Se Tuya non dichiara la scala ma il valore è tipo 240, la temperatura è in decimi di grado.
+  const scale = t.scale ?? (raw > 50 ? 1 : 0);
+  const k = 10 ** scale;
   const sp = {
-    fns,
-    scale: t.scale || 0,
-    temp: { min: (t.min ?? 16) / 10 ** (t.scale || 0), max: (t.max ?? 30) / 10 ** (t.scale || 0), step: (t.step ?? 1) / 10 ** (t.scale || 0) },
+    fns, scale, codes: Object.keys(fns),
+    temp: { min: (t.min ?? 16 * k) / k, max: (t.max ?? 30 * k) / k, step: (t.step ?? k) / k },
     modes: fns.mode?.range || [],
     fanCode: find(FAN_CODES),
     swingCodes: SWING_CODES.filter((c) => fns[c]?.type === 'Boolean'),
     extras: ['eco', 'sleep', 'turbo', 'health', 'light', 'child_lock'].filter((c) => fns[c]?.type === 'Boolean'),
   };
+  sp.temp.min = Math.max(sp.temp.min, 16); sp.temp.max = Math.min(sp.temp.max, 32);
+  if (sp.temp.step < 0.5) sp.temp.step = 0.5;
   sp.fans = sp.fanCode ? fns[sp.fanCode].range || [] : [];
   specCache.set(id, sp);
   return sp;
@@ -101,6 +117,6 @@ export async function readAc(dev) {
     fan: sp.fanCode ? g(sp.fanCode) : undefined,
     swing: sp.swingCodes.length ? sp.swingCodes.some((c) => g(c)) : undefined,
     extras: Object.fromEntries(sp.extras.map((c) => [c, !!g(c)])),
-    caps: { modes: sp.modes, fans: sp.fans, swing: sp.swingCodes.length > 0, extras: sp.extras, temp: sp.temp },
+    caps: { codes: sp.codes, modes: sp.modes, fans: sp.fans, swing: sp.swingCodes.length > 0, extras: sp.extras, temp: sp.temp },
   };
 }
