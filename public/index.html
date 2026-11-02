@@ -131,7 +131,7 @@ async function scene(id, name) {
 function card(d) {
   const s = st[d.id] || {}, a = (c) => `data-id="${d.id}" data-cmd='${JSON.stringify(c)}'`;
   const dot = s.online === false ? '<i class="dot off" title="offline"></i>' : '';
-  const head = `<h3><span>${ICON[d.type]} ${h(d.name)} <small>${room === 'Tutte' ? h(d.room) : ''}</small></span>${dot}</h3>`;
+  const head = `<h3><span>${ICON[d.type]} ${h(d.name)} <small>${room === 'Tutte' ? h(d.room) : ''}</small></span>${dot}</h3>${s.online === false && s.error ? `<div class="mut" style="color:var(--bad);user-select:text">${h(s.error)}</div>` : ''}`;
   if (d.type === 'light') return `<div class="card">${head}<div class="row"><button class="big ${s.on ? 'act' : ''}" ${a({ on: !s.on })}>${s.on ? 'Accesa' : 'Spenta'}</button></div></div>`;
   if (d.type === 'door') return `<div class="card">${head}<button class="big hold" data-door="${d.id}">Tieni premuto per aprire</button></div>`;
   if (d.type === 'shutter') return `<div class="card">${head}<div class="row">
