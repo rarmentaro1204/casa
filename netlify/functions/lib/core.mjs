@@ -1,10 +1,10 @@
 import { getStore } from '@netlify/blobs';
-import { readFileSync } from 'node:fs';
+import devices from '../../../config/devices.json' with { type: 'json' };
 import * as ewelink from './ewelink.mjs';
 import * as meross from './meross.mjs';
 import * as tuya from './tuya.mjs';
 
-export const config = JSON.parse(readFileSync(new URL('../../../config/devices.json', import.meta.url), 'utf8'));
+export const config = devices;
 const store = () => getStore('casa');
 const byId = (id) => config.devices.find((d) => d.id === id);
 
