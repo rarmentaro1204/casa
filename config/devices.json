@@ -1,18 +1,168 @@
 {
   "devices": [
-    { "id": "tap-soggiorno", "name": "Tapparella", "room": "Soggiorno", "type": "shutter", "driver": "ewelink", "up": "ID_SONOFF_SU", "down": "ID_SONOFF_GIU" },
-    { "id": "luce-soggiorno", "name": "Luce", "room": "Soggiorno", "type": "light", "driver": "ewelink", "deviceId": "ID_SONOFF_LUCE" },
-    { "id": "portone", "name": "Portone", "room": "Ingresso", "type": "door", "driver": "ewelink", "deviceId": "ID_SONOFF_CITOFONO" },
-    { "id": "valvola-soggiorno", "name": "Termovalvola", "room": "Soggiorno", "type": "thermostat", "driver": "meross", "hubUuid": "UUID_HUB_MSH300", "subId": "ID_MTS150" },
-    { "id": "clima-soggiorno", "name": "Climatizzatore", "room": "Soggiorno", "type": "ac", "driver": "tuya", "deviceId": "ID_TUYA_ZEPHIR" }
+    {
+      "id": "tap-soggiorno",
+      "name": "Tapparella",
+      "room": "Soggiorno",
+      "type": "shutter",
+      "driver": "ewelink",
+      "up": "ID_SONOFF_SU",
+      "down": "ID_SONOFF_GIU"
+    },
+    {
+      "id": "luce-soggiorno",
+      "name": "Luce",
+      "room": "Soggiorno",
+      "type": "light",
+      "driver": "ewelink",
+      "deviceId": "ID_SONOFF_LUCE"
+    },
+    {
+      "id": "portone",
+      "name": "Portone",
+      "room": "Ingresso",
+      "type": "door",
+      "driver": "ewelink",
+      "deviceId": "ID_SONOFF_CITOFONO"
+    },
+    {
+      "id": "clima-soggiorno",
+      "name": "Climatizzatore",
+      "room": "Soggiorno",
+      "type": "ac",
+      "driver": "tuya",
+      "deviceId": "ID_TUYA_ZEPHIR"
+    },
+    {
+      "id": "valvola-soggiorno",
+      "name": "Termovalvola",
+      "room": "Soggiorno",
+      "type": "thermostat",
+      "driver": "meross",
+      "hubUuid": "UUID_HUB_MSH300",
+      "subName": "Soggiorno"
+    },
+    {
+      "id": "valvola-soggiorno-sud",
+      "name": "Termovalvola",
+      "room": "Soggiorno",
+      "type": "thermostat",
+      "driver": "meross",
+      "hubUuid": "UUID_HUB_MSH300",
+      "subName": "Soggiorno sud"
+    },
+    {
+      "id": "valvola-cucina",
+      "name": "Termovalvola",
+      "room": "Cucina",
+      "type": "thermostat",
+      "driver": "meross",
+      "hubUuid": "UUID_HUB_MSH300",
+      "subName": "Cucina"
+    },
+    {
+      "id": "valvola-bagno",
+      "name": "Termovalvola",
+      "room": "Bagno",
+      "type": "thermostat",
+      "driver": "meross",
+      "hubUuid": "UUID_HUB_MSH300",
+      "subName": "Bagno ingresso"
+    }
   ],
   "scenes": [
-    { "id": "buongiorno", "name": "Buongiorno", "icon": "☀️", "actions": [
-      { "device": "tap-soggiorno", "command": { "action": "up" } },
-      { "device": "luce-soggiorno", "command": { "on": true } } ] },
-    { "id": "buonanotte", "name": "Buonanotte", "icon": "🌙", "actions": [
-      { "device": "tap-soggiorno", "command": { "action": "down" } },
-      { "device": "luce-soggiorno", "command": { "on": false } },
-      { "device": "clima-soggiorno", "command": { "on": false } } ] }
-  ]
+    {
+      "id": "buongiorno",
+      "name": "Buongiorno",
+      "icon": "☀️",
+      "actions": [
+        {
+          "device": "tap-soggiorno",
+          "command": {
+            "action": "up"
+          }
+        },
+        {
+          "device": "luce-soggiorno",
+          "command": {
+            "on": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "buonanotte",
+      "name": "Buonanotte",
+      "icon": "🌙",
+      "actions": [
+        {
+          "device": "tap-soggiorno",
+          "command": {
+            "action": "down"
+          }
+        },
+        {
+          "device": "luce-soggiorno",
+          "command": {
+            "on": false
+          }
+        },
+        {
+          "device": "clima-soggiorno",
+          "command": {
+            "on": false
+          }
+        }
+      ]
+    }
+  ],
+  "modes": [
+    {
+      "id": "inverno",
+      "name": "Casa inverno",
+      "icon": "🔥",
+      "info": "Lun–Ven 18–20 · Sab–Dom 7–9 e 18–20 · 21°"
+    },
+    {
+      "id": "fuori",
+      "name": "Esco di casa",
+      "icon": "🚪",
+      "info": "Valvole spente (bagno resta al massimo)"
+    },
+    {
+      "id": "estate",
+      "name": "Casa estate",
+      "icon": "☀️",
+      "info": "Tutto spento, bagno al massimo"
+    }
+  ],
+  "heating": {
+    "group": [
+      "valvola-soggiorno",
+      "valvola-soggiorno-sud",
+      "valvola-cucina"
+    ],
+    "always": [
+      "valvola-bagno"
+    ],
+    "temp": 21,
+    "winter": {
+      "weekdays": [
+        [
+          "18:00",
+          "20:00"
+        ]
+      ],
+      "weekend": [
+        [
+          "07:00",
+          "09:00"
+        ],
+        [
+          "18:00",
+          "20:00"
+        ]
+      ]
+    }
+  }
 }

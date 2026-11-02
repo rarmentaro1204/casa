@@ -1,3 +1,5 @@
+import { getMode, setMode } from './lib/heating.mjs';
+import { listValves } from './lib/meross.mjs';
 import { config as cfg, state, command, runScene, getSchedules, setSchedules } from './lib/core.mjs';
 
 const json = (data, status = 200) => Response.json(data, { status });
@@ -10,7 +12,16 @@ export default async (req) => {
   const path = new URL(req.url).pathname.replace(/^\/api\/?/, '');
   const body = req.method === 'POST' || req.method === 'PUT' ? await req.json().catch(() => ({})) : {};
   try {
-    if (path === 'config') return json({ devices: cfg.devices.map(({ id, name, room, type }) => ({ id, name, room, type })), scenes: cfg.scenes.map(({ id, name, icon }) => ({ id, name, icon })) });
+    if (path === 'config') return json({ devices: cfg.devices.map(({ id, name, room, type }) => ({ id, name, room, type })), scenes: cfg.scenes.map(({ id, name, icon }) => ({ id, name, icon })), modes: cfg.modes }); 
+    if (path === 'mode' && req.method === 'GET') return json({ mode: await getMode() });
+    if (path === 'mode') return json(await setMode(body.mode));
+    if (path === 'valves') {
+      const hubs = [...new Set(cfg.devices.filter((d) => d.driver === 'meross').map((d) => d.hubUuid))];
+      const found = (await Promise.all(hubs.map(listValves))).flat();
+      const names = cfg.devices.filter((d) => d.driver === 'meross').map((d) => d.subName);
+      const norm = (x) => String(x || '').trim().toLowerCase();
+      return json({ valves: found.map((v) => ({ ...v, configured: names.some((n) => norm(n) === norm(v.name)) })), missing: names.filter((n) => !found.some((v) => norm(v.name) === norm(n))) });
+    }
     if (path === 'state') return json(await state());
     if (path === 'command') {
       if (cfg.devices.find((d) => d.id === body.device)?.type === 'door' && !pin) return json({ error: 'Imposta APP_PIN per abilitare il portone' }, 403);

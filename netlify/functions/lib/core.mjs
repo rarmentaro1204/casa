@@ -48,7 +48,7 @@ export async function state() {
   const live = await Promise.all(config.devices.map(async (d) => {
     const fn = read[`${d.driver}:${d.type}`];
     if (!fn) return [d.id, cache[d.id] || {}]; // es. tapparelle: solo l'ultimo comando
-    try { return [d.id, { ...cache[d.id], ...(await fn(d)), online: true }]; }
+    try { const r = await fn(d); return [d.id, { ...cache[d.id], ...r, online: r.online ?? true }]; }
     catch (e) { return [d.id, { ...cache[d.id], online: false, error: e.message }]; }
   }));
   return Object.fromEntries(live);
