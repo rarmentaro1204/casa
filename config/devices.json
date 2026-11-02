@@ -145,7 +145,7 @@
       "id": "fuori",
       "name": "Esco di casa",
       "icon": "🚪",
-      "info": "Soggiorno e cucina spenti · bagno ingresso al massimo · camera e bagno finestra 15°"
+      "info": "Tutte le valvole a 15° · bagno ingresso al massimo"
     },
     {
       "id": "estate",
@@ -191,6 +191,9 @@
       "offIn": [
         "estate"
       ]
+    },
+    "away": {
+      "temp": 15
     }
   }
 }

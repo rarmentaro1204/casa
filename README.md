@@ -16,7 +16,8 @@ Prova l'interfaccia in locale: `node demo-server.mjs` → http://localhost:8888/
 ## Scenari riscaldamento
 In prima pagina: **Casa inverno**, **Esco di casa**, **Casa estate** (definiti in `config/devices.json`, sezioni `modes` e `heating`).
 - Inverno: Soggiorno, Soggiorno sud e Cucina a 21° Lun–Ven 18–20 e Sab–Dom 7–9 e 18–20, spente fuori da queste fasce.
-- Esco di casa / Estate: le tre valvole si spengono. Esco di casa e Estate restano attivi finché non scegli un altro scenario, quindi al rientro tocca di nuovo "Casa inverno".
+- Esco di casa: tutte le valvole a 15° (bagno ingresso resta al massimo).
+- Estate: le tre valvole si spengono. Esco di casa e Estate restano attivi finché non scegli un altro scenario, quindi al rientro tocca di nuovo "Casa inverno".
 - Cameretta e Bagno finestra: sempre a 15° in Inverno e in Esco di casa, spente in Estate.
 - Bagno ingresso: sempre acceso al massimo in tutti gli scenari.
 - Il controllo parte ogni minuto, ma i comandi partono solo quando serve cambiare stato: le pile delle valvole durano di più.
