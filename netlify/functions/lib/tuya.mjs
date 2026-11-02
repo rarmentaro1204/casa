@@ -25,6 +25,22 @@ async function getToken() { return (await req('GET', '/v1.0/token?grant_type=1')
 
 const commands = (id, list) => req('POST', `/v1.0/iot-03/devices/${id}/commands`, { commands: list });
 
+// In configurazione deviceId può essere l'ID Tuya oppure il nome del dispositivo nell'app.
+let devs;
+const norm = (s) => String(s || '').trim().toLowerCase();
+export async function listDevices() {
+  if (devs) return devs;
+  const r = await req('GET', '/v1.0/iot-01/associated-users/devices?size=100');
+  devs = (r.devices || []).map((d) => ({ id: d.id, name: d.name, category: d.category, online: d.online }));
+  return devs;
+}
+async function rid(v) {
+  const l = await listDevices();
+  const f = l.find((x) => x.id === v) || l.find((x) => norm(x.name) === norm(v));
+  if (!f) throw new Error(`Tuya: dispositivo "${v}" non trovato tra quelli collegati al progetto`);
+  return f.id;
+}
+
 // Le funzioni supportate cambiano da modello a modello: le leggo da Tuya (e le tengo in cache).
 const specCache = new Map();
 const FAN_CODES = ['windspeed', 'fan_speed_enum', 'wind_speed'];
@@ -51,7 +67,8 @@ async function specs(id) {
 }
 
 export async function ac(dev, cmd) {
-  const sp = await specs(dev.deviceId);
+  const id = await rid(dev.deviceId);
+  const sp = await specs(id);
   const list = [];
   if ('on' in cmd) list.push({ code: 'switch', value: cmd.on });
   if ('target' in cmd) {
@@ -68,11 +85,12 @@ export async function ac(dev, cmd) {
   }
   if ('swing' in cmd) sp.swingCodes.forEach((c) => list.push({ code: c, value: !!cmd.swing }));
   for (const x of sp.extras) if (x in cmd) list.push({ code: x, value: !!cmd[x] });
-  if (list.length) await commands(dev.deviceId, list);
+  if (list.length) await commands(id, list);
 }
 
 export async function readAc(dev) {
-  const [sp, st] = await Promise.all([specs(dev.deviceId), req('GET', `/v1.0/iot-03/devices/${dev.deviceId}/status`)]);
+  const id = await rid(dev.deviceId);
+  const [sp, st] = await Promise.all([specs(id), req('GET', `/v1.0/iot-03/devices/${id}/status`)]);
   const g = (c) => st.find((x) => x.code === c)?.value;
   const k = 10 ** sp.scale;
   return {

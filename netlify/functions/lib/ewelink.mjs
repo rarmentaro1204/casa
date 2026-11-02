@@ -30,6 +30,22 @@ async function call(path, method, body) {
   return r.data;
 }
 
+// In configurazione si può scrivere l'ID oppure il nome del dispositivo come appare nell'app eWeLink.
+let things;
+const norm = (s) => String(s || '').trim().toLowerCase();
+export async function listDevices() {
+  if (things) return things;
+  const d = await call('/v2/device/thing?num=0', 'GET');
+  things = (d.thingList || []).filter((t) => t.itemType <= 2).map((t) => ({ id: t.itemData.deviceid, name: t.itemData.name, online: t.itemData.online }));
+  return things;
+}
+async function rid(v) {
+  const l = await listDevices();
+  const f = l.find((x) => x.id === v) || l.find((x) => norm(x.name) === norm(v));
+  if (!f) throw new Error(`eWeLink: dispositivo "${v}" non trovato (controlla nome o ID)`);
+  return f.id;
+}
+
 export const setSwitch = (id, on) =>
   call('/v2/device/thing/status', 'POST', { type: 1, id, params: { switch: on ? 'on' : 'off' } });
 
@@ -41,17 +57,18 @@ export async function getSwitch(id) {
 // Tapparella = 2 Mini R4 (SU/GIU). L'interblocco e il tempo di corsa li gestisce il
 // dispositivo: in eWeLink imposta su entrambi "Inching" (impulso) = tempo di corsa.
 export async function shutter(dev, action) {
-  if (action === 'stop') return Promise.all([setSwitch(dev.up, false), setSwitch(dev.down, false)]);
-  const [on, off] = action === 'up' ? [dev.up, dev.down] : [dev.down, dev.up];
+  const [up, down] = [await rid(dev.up), await rid(dev.down)];
+  if (action === 'stop') return Promise.all([setSwitch(up, false), setSwitch(down, false)]);
+  const [on, off] = action === 'up' ? [up, down] : [down, up];
   await setSwitch(off, false); // prima spegni il verso opposto: mai entrambi accesi
   await setSwitch(on, true);
 }
 
 // Portone: un Mini R4 in parallelo al pulsante apriporta del citofono.
 // In eWeLink imposta "Inching" a 1-2 s: il relè si chiude e si riapre da solo.
-export const door = (dev) => setSwitch(dev.deviceId, true);
+export const door = async (dev) => setSwitch(await rid(dev.deviceId), true);
 
 export async function light(dev, cmd) {
-  if ('on' in cmd) await setSwitch(dev.deviceId, cmd.on);
+  if ('on' in cmd) await setSwitch(await rid(dev.deviceId), cmd.on);
 }
-export async function readLight(dev) { return { on: await getSwitch(dev.deviceId) }; }
+export async function readLight(dev) { return { on: await getSwitch(await rid(dev.deviceId)) }; }

@@ -53,14 +53,14 @@ dialog h2{margin:0 0 14px}dialog input,dialog select{font:inherit;padding:12px;b
 </style>
 </head>
 <body>
-<header><h1 id="title">Casa</h1><span id="clock"></span><button class="chip" id="valBtn">🔧 Valvole</button><button class="chip" id="schBtn">⏰ Orari</button></header>
+<header><h1 id="title">Casa</h1><span id="clock"></span><button class="chip" id="valBtn">🔧 Diagnostica</button><button class="chip" id="schBtn">⏰ Orari</button></header>
 <div class="modes" id="modes"></div>
 <div class="scenes" id="scenes"></div>
 <nav id="rooms"></nav>
 <main id="grid"></main>
 <div id="toast"></div>
 
-<dialog id="valDlg"><h2>Controllo valvole</h2><div id="valList"><p class="mut">Interrogo l'hub…</p></div><div class="row" style="margin-top:14px"><button class="chip" id="valRe">Ricontrolla</button><button class="chip" id="valClose">Chiudi</button></div></dialog>
+<dialog id="valDlg"><h2>Diagnostica</h2><div id="valList"><p class="mut">Interrogo l'hub…</p></div><div id="devList"></div><div class="row" style="margin-top:14px"><button class="chip" id="valRe">Ricontrolla</button><button class="chip" id="valClose">Chiudi</button></div></dialog>
 <dialog id="schDlg"><h2>Orari automatici</h2><div id="schList"></div>
   <h3>Nuovo orario</h3>
   <select id="schScene"></select>
@@ -98,6 +98,7 @@ function demoApi(path, opts) {
   const body = opts.body ? JSON.parse(opts.body) : {};
   if (path === 'config') return demo.cfg;
   if (path === 'mode') { if (opts.method === 'POST') { demo.mode = body.mode; return []; } return { mode: demo.mode || 'inverno' }; }
+  if (path === 'discover') return { ewelink: { devices: [{id:'1000abc123',name:'Tapparella soggiorno SU',online:true}] }, tuya: { error: 'Tuya: No space permission' } };
   if (path === 'valves') return { valves: [{id:'a',name:'Soggiorno',online:true,duplicate:false,configured:true,current:20.4,target:21,batteryMv:2950},{id:'b',name:'Soggiorno sud',online:true,duplicate:false,configured:true,current:19.8,target:21,batteryMv:2900},{id:'c',name:'Cucina',online:false,duplicate:false,configured:true,batteryMv:2100},{id:'d',name:'Cucina',online:true,duplicate:true,configured:true,current:20,target:21,batteryMv:3000},{id:'e',name:'Bagno ingresso',online:true,duplicate:false,configured:true,current:22,target:35,batteryMv:2950}], missing: [] };
   if (path === 'state') return demo.st;
   if (path === 'command') { demo.st[body.device] = { ...demo.st[body.device], ...body.command, online: true }; return { ok: true }; }
@@ -196,8 +197,16 @@ async function loadValves() {
       + valves.map((v) => `<div class="vrow"><span><b>${h(v.name)}</b> ${v.configured ? '' : '<span class="tag">non in configurazione</span>'} ${v.duplicate ? '<span class="tag bad">nome doppio</span>' : ''}<br><span class="mut">${v.online ? `${v.current ?? '--'}° → ${v.target ?? '--'}°` : 'non risponde'} ${batt(v) ? '· pile ' + batt(v) : ''}</span></span><span class="tag ${v.online ? 'ok' : 'bad'}">${v.online ? 'online' : 'offline'}</span></div>`).join('');
   } catch (e) { $('#valList').innerHTML = `<p class="mut">Errore: ${h(e.message)}</p>`; }
 }
-$('#valBtn').onclick = () => { $('#valDlg').showModal(); loadValves(); };
-$('#valRe').onclick = loadValves; $('#valClose').onclick = () => $('#valDlg').close();
+async function loadDevices() {
+  $('#devList').innerHTML = '<h3>Sonoff e condizionatori</h3><p class="mut">Cerco i dispositivi…</p>';
+  try {
+    const r = await api('discover');
+    const sec = (title, x) => `<h3>${title}</h3>` + (x.error ? `<p><span class="tag bad">Errore</span> ${h(x.error)}</p>` : x.devices.map((d) => `<div class="vrow"><span><b>${h(d.name)}</b><br><span class="mut" style="user-select:text">${h(d.id)}</span></span><span class="tag ${d.online ? 'ok' : 'bad'}">${d.online ? 'online' : 'offline'}</span></div>`).join('') || '<p class="mut">Nessun dispositivo.</p>');
+    $('#devList').innerHTML = sec('Sonoff (eWeLink)', r.ewelink) + sec('Climatizzatori (Tuya)', r.tuya);
+  } catch (e) { $('#devList').innerHTML = `<p class="mut">Errore: ${h(e.message)}</p>`; }
+}
+$('#valBtn').onclick = () => { $('#valDlg').showModal(); loadValves(); loadDevices(); };
+$('#valRe').onclick = () => { loadValves(); loadDevices(); }; $('#valClose').onclick = () => $('#valDlg').close();
 
 async function refresh() { try { mode = (await api('mode')).mode; } catch {} try { st = await api('state'); } catch (e) { toast('Offline: ' + e.message); } render(); }
 async function init() {

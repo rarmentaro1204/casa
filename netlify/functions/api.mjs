@@ -1,5 +1,7 @@
 import { getMode, setMode } from './lib/heating.mjs';
 import { listValves } from './lib/meross.mjs';
+import * as ewelink from './lib/ewelink.mjs';
+import * as tuya from './lib/tuya.mjs';
 import { config as cfg, state, command, runScene, getSchedules, setSchedules } from './lib/core.mjs';
 
 const json = (data, status = 200) => Response.json(data, { status });
@@ -15,6 +17,10 @@ export default async (req) => {
     if (path === 'config') return json({ devices: cfg.devices.map(({ id, name, room, type }) => ({ id, name, room, type })), scenes: cfg.scenes.map(({ id, name, icon }) => ({ id, name, icon })), modes: cfg.modes }); 
     if (path === 'mode' && req.method === 'GET') return json({ mode: await getMode() });
     if (path === 'mode') return json(await setMode(body.mode));
+    if (path === 'discover') {
+      const t = async (f) => { try { return { devices: await f() }; } catch (e) { return { error: e.message }; } };
+      return json({ ewelink: await t(ewelink.listDevices), tuya: await t(tuya.listDevices) });
+    }
     if (path === 'valves') {
       const hubs = [...new Set(cfg.devices.filter((d) => d.driver === 'meross').map((d) => d.hubUuid))];
       const found = (await Promise.all(hubs.map(listValves))).flat();
