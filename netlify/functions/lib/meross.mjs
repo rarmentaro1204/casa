@@ -10,6 +10,8 @@ const md5 = (s) => crypto.createHash('md5').update(s).digest('hex');
 const SECRET = '23x17ahWarFH6w29';
 const norm = (s) => String(s || '').trim().toLowerCase();
 let session;
+// Meross ha server per regione. Parto dall'Europa e, se l'account è altrove, seguo l'indirizzo indicato da Meross.
+let apiBase = (process.env.MEROSS_API || 'https://iotx-eu.meross.com').replace(/\/$/, '');
 
 function signed(data) {
   const params = Buffer.from(JSON.stringify(data)).toString('base64');
@@ -18,11 +20,16 @@ function signed(data) {
   return new URLSearchParams({ params, sign: md5(SECRET + timestamp + nonce + params), timestamp, nonce });
 }
 
-async function cloud(path, data, token = '') {
-  const r = await fetch(`https://iot.meross.com${path}`, {
+async function cloud(path, data, token = '', retry = true) {
+  if (!process.env.MEROSS_EMAIL || !process.env.MEROSS_PASSWORD) throw new Error('Mancano MEROSS_EMAIL / MEROSS_PASSWORD su Netlify');
+  const r = await fetch(`${apiBase}${path}`, {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Authorization: `Basic ${token}`.trim() },
     body: signed(data),
   }).then((x) => x.json());
+  if (r.apiStatus === 1030 && retry && r.data?.domain) {
+    apiBase = r.data.domain.startsWith('http') ? r.data.domain : `https://${r.data.domain}`;
+    return cloud(path, data, token, false);
+  }
   if (r.apiStatus !== 0) throw new Error(`Meross ${path}: ${r.info || r.apiStatus}`);
   return r.data;
 }

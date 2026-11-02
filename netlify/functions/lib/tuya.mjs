@@ -9,6 +9,7 @@ const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 let tok;
 
 async function req(method, path, body) {
+  if (!process.env.TUYA_ACCESS_ID || !process.env.TUYA_ACCESS_SECRET) throw new Error('Mancano TUYA_ACCESS_ID / TUYA_ACCESS_SECRET su Netlify');
   const t = Date.now().toString();
   const bodyStr = body ? JSON.stringify(body) : '';
   const token = path.startsWith('/v1.0/token') ? '' : (tok ??= await getToken());

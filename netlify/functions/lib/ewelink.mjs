@@ -8,6 +8,8 @@ let session; // { token, base, exp }
 const sign = (body) => crypto.createHmac('sha256', process.env.EWELINK_SECRET).update(body).digest('base64');
 
 async function login() {
+  const miss = ['EWELINK_APPID', 'EWELINK_SECRET', 'EWELINK_EMAIL', 'EWELINK_PASSWORD'].filter((k) => !process.env[k]);
+  if (miss.length) throw new Error(`Mancano su Netlify le variabili: ${miss.join(', ')}`);
   if (session && session.exp > Date.now()) return session;
   const base = BASE[process.env.EWELINK_REGION || 'eu'];
   const body = JSON.stringify({ email: process.env.EWELINK_EMAIL, password: process.env.EWELINK_PASSWORD, countryCode: '+39' });
