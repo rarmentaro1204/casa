@@ -24,7 +24,17 @@ async function req(method, path, body) {
 }
 async function getToken() { return (await req('GET', '/v1.0/token?grant_type=1')).access_token; }
 
-const commands = (id, list) => req('POST', `/v1.0/iot-03/devices/${id}/commands`, { commands: list });
+// Canale classico dei comandi; se Tuya lo rifiuta (prodotti con "modello a proprietà") riprovo con le proprietà.
+async function commands(id, list) {
+  const codes = list.map((c) => `${c.code}=${c.value}`).join(', ');
+  try { return await req('POST', `/v1.0/iot-03/devices/${id}/commands`, { commands: list }); }
+  catch (e1) {
+    try {
+      const props = Object.fromEntries(list.map((c) => [c.code, c.value]));
+      return await req('POST', `/v2.0/cloud/thing/${id}/shadow/properties/issue`, { properties: JSON.stringify(props) });
+    } catch (e2) { throw new Error(`${e1.message} [${codes}] / ${e2.message}`); }
+  }
+}
 
 // In configurazione deviceId può essere l'ID Tuya oppure il nome del dispositivo nell'app.
 let devs;
