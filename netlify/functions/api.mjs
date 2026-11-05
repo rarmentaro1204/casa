@@ -1,4 +1,4 @@
-import { getMode, setMode } from './lib/heating.mjs';
+import { getMode, setMode, setPolicy, status as heatingStatus } from './lib/heating.mjs';
 import { listValves } from './lib/meross.mjs';
 import * as ewelink from './lib/ewelink.mjs';
 import * as tuya from './lib/tuya.mjs';
@@ -17,6 +17,8 @@ export default async (req) => {
   try {
     if (path === 'config') return json({ devices: cfg.devices.map(({ id, name, room, type }) => ({ id, name, room, type })), scenes: cfg.scenes.map(({ id, name, icon }) => ({ id, name, icon })), modes: cfg.modes }); 
     if (path === 'mode' && req.method === 'GET') return json({ mode: await getMode() });
+    if (path === 'heating') return json(await heatingStatus());
+    if (path === 'policy') return json(await setPolicy(body.policy));
     if (path === 'mode') return json(await setMode(body.mode));
     if (path === 'discover') {
       const t = async (f) => { try { return { devices: await f() }; } catch (e) { return { error: e.message }; } };

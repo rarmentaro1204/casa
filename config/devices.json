@@ -161,7 +161,7 @@
       "id": "inverno",
       "name": "Casa inverno",
       "icon": "🔥",
-      "info": "Lun–Ven 18–20 · Sab–Dom 7–9 e 18–20 · 21° · Cameretta e bagno finestra 15°"
+      "info": "Lun–Ven 6–8 e 18–20 · Sab–Dom 6–9 e 18–20 · 21° · Cameretta e bagno finestra 15°"
     },
     {
       "id": "fuori",
@@ -189,13 +189,17 @@
     "winter": {
       "weekdays": [
         [
+          "06:00",
+          "08:00"
+        ],
+        [
           "18:00",
           "20:00"
         ]
       ],
       "weekend": [
         [
-          "07:00",
+          "06:00",
           "09:00"
         ],
         [
@@ -216,6 +220,7 @@
     },
     "away": {
       "temp": 15
-    }
+    },
+    "defaultPolicy": "app"
   }
 }

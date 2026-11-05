@@ -41,31 +41,38 @@ async function login() {
   return session;
 }
 
-// Ogni chiamata usa un clientId MQTT proprio: due connessioni con lo stesso id si disconnettono a vicenda.
-async function send(uuid, method, namespace, payload) {
+// Ogni connessione usa un clientId MQTT proprio (due connessioni con lo stesso id si disconnettono a vicenda)
+// e può portare più richieste di seguito: meno connessioni = comandi più rapidi.
+async function connect() {
   const s = await login();
   const appId = md5(crypto.randomUUID());
   const uid = String(s.userId ?? s.userid ?? s.uid ?? '');
   if (!uid || !s.key) throw new Error(`Meross: risposta di login inattesa (campi ricevuti: ${Object.keys(s).join(', ') || 'nessuno'})`);
-  const host = s.mqttDomain || 'iotx-eu.meross.com';
-  const client = mqtt.connect(`mqtts://${host}:2001`, { clientId: `app:${appId}`, username: uid, password: md5(uid + s.key) });
+  const client = mqtt.connect(`mqtts://${s.mqttDomain || 'iotx-eu.meross.com'}:2001`, { clientId: `app:${appId}`, username: uid, password: md5(uid + s.key) });
   const respTopic = `/app/${uid}-${appId}/subscribe`;
-  return new Promise((resolve, reject) => {
+  const pending = new Map();
+  await new Promise((resolve, reject) => {
     const t = setTimeout(() => { client.end(true); reject(new Error('Meross: timeout (hub spento o offline?)')); }, 8000);
-    client.on('error', (e) => { clearTimeout(t); client.end(true); reject(e); });
-    client.on('connect', () => {
-      client.subscribe(respTopic);
-      const messageId = md5(crypto.randomUUID());
-      const timestamp = Math.floor(Date.now() / 1000);
-      const header = { messageId, method, from: respTopic, namespace, payloadVersion: 1, sign: md5(messageId + s.key + timestamp), timestamp, triggerSrc: 'Android', uuid };
-      client.on('message', (_t, buf) => {
-        const m = JSON.parse(buf.toString());
-        if (m.header.messageId !== messageId) return;
-        clearTimeout(t); client.end(true); resolve(m.payload);
-      });
-      client.publish(`/appliance/${uuid}/subscribe`, JSON.stringify({ header, payload }));
-    });
+    client.once('error', (e) => { clearTimeout(t); client.end(true); reject(e); });
+    client.once('connect', () => { clearTimeout(t); client.subscribe(respTopic); resolve(); });
   });
+  client.on('message', (_t, buf) => { const m = JSON.parse(buf.toString()); pending.get(m.header.messageId)?.(m.payload); });
+  const request = (uuid, method, namespace, payload) => new Promise((resolve, reject) => {
+    const messageId = md5(crypto.randomUUID()), timestamp = Math.floor(Date.now() / 1000);
+    const header = { messageId, method, from: respTopic, namespace, payloadVersion: 1, sign: md5(messageId + s.key + timestamp), timestamp, triggerSrc: 'Android', uuid };
+    const t = setTimeout(() => { pending.delete(messageId); reject(new Error('Meross: timeout (hub spento o offline?)')); }, 8000);
+    pending.set(messageId, (p) => { clearTimeout(t); pending.delete(messageId); resolve(p); });
+    client.publish(`/appliance/${uuid}/subscribe`, JSON.stringify({ header, payload }));
+  });
+  return { request, end: () => client.end(true) };
+}
+async function send(uuid, method, namespace, payload) {
+  const c = await connect();
+  try { return await c.request(uuid, method, namespace, payload); } finally { c.end(); }
+}
+async function sendMany(uuid, list) {
+  const c = await connect();
+  try { for (const [method, namespace, payload] of list) await c.request(uuid, method, namespace, payload); } finally { c.end(); }
 }
 
 // hubUuid in configurazione: UUID vero, nome dell'hub nell'app, oppure "auto" (se l'account ha un solo hub MSH).
@@ -97,7 +104,7 @@ export function snapshot(hubUuid, fresh = false) {
       const d = all.all?.find((a) => a.id === x.subDeviceId);
       const b = bat.battery?.find((a) => a.id === x.subDeviceId);
       const t = d?.temperature;
-      return { hub, id: x.subDeviceId, name: x.subDeviceName, online: d?.online?.status === 1, on: d?.togglex?.onoff === 1,
+      return { hub, id: x.subDeviceId, name: x.subDeviceName, online: d?.online?.status === 1, mode: d?.mode?.state, on: d?.togglex?.onoff === 1,
         current: t ? t.room / 10 : undefined, target: t ? t.currentSet / 10 : undefined, min: t ? t.min / 10 : 5, max: t ? t.max / 10 : 35, batteryMv: b?.value };
     });
   })();
@@ -124,20 +131,27 @@ async function find(dev) {
   return c.find((x) => x.online) || c[0]; // se ci sono doppioni vince quello online
 }
 
-// Temperature in decimi di grado (210 = 21.0°C). target: numero oppure 'max'.
+// Modalità MTS150 (Appliance.Hub.Mts100.Mode): 0 manuale, 4 programma (gli orari impostati nell'app Meross).
+export const MODE_MANUAL = 0, MODE_AUTO = 4;
+
+// cmd: on (bool), target (° oppure 'max'), mode ('auto' = lascia i programmi Meross).
+// Impostare una temperatura mette la valvola in manuale; 'on'/'off' da solo NON tocca i programmi.
 export async function thermostat(dev, cmd) {
   const v = await find(dev);
   if (!v.online) throw new Error(`Valvola "${v.name}" offline: controlla pile e distanza dall'hub`);
-  if ('on' in cmd) await send(v.hub, 'SET', 'Appliance.Hub.ToggleX', { togglex: [{ id: v.id, onoff: cmd.on ? 1 : 0 }] });
+  const list = [];
+  if ('on' in cmd) list.push(['SET', 'Appliance.Hub.ToggleX', { togglex: [{ id: v.id, onoff: cmd.on ? 1 : 0 }] }]);
+  if (cmd.mode === 'auto') list.push(['SET', 'Appliance.Hub.Mts100.Mode', { mode: [{ id: v.id, state: MODE_AUTO }] }]);
   if ('target' in cmd) {
     const t = cmd.target === 'max' ? v.max : cmd.target;
-    await send(v.hub, 'SET', 'Appliance.Hub.Mts100.Mode', { mode: [{ id: v.id, state: 0 }] }); // 0 = manuale
-    await send(v.hub, 'SET', 'Appliance.Hub.Mts100.Temperature', { temperature: [{ id: v.id, custom: Math.round(t * 10) }] });
+    list.push(['SET', 'Appliance.Hub.Mts100.Mode', { mode: [{ id: v.id, state: MODE_MANUAL }] }],
+      ['SET', 'Appliance.Hub.Mts100.Temperature', { temperature: [{ id: v.id, custom: Math.round(t * 10) }] }]);
   }
+  if (list.length) await sendMany(v.hub, list);
   snaps.delete(dev.hubUuid);
 }
 
 export async function readThermostat(dev) {
   const v = await find(dev);
-  return { current: v.current, target: v.target, on: v.on, online: v.online, batteryMv: v.batteryMv };
+  return { current: v.current, target: v.target, on: v.on, online: v.online, batteryMv: v.batteryMv, meMode: v.mode };
 }
