@@ -102,6 +102,15 @@
       "type": "lock",
       "driver": "switchbot",
       "deviceId": "NOME_SERRATURA_SWITCHBOT"
+    },
+    {
+      "id": "valvola-camera",
+      "name": "Termovalvola",
+      "room": "Camera",
+      "type": "thermostat",
+      "driver": "meross",
+      "hubUuid": "auto",
+      "subName": "Camera matrimoniale"
     }
   ],
   "scenes": [
@@ -180,7 +189,8 @@
     "group": [
       "valvola-soggiorno",
       "valvola-soggiorno-sud",
-      "valvola-cucina"
+      "valvola-cucina",
+      "valvola-camera"
     ],
     "always": [
       "valvola-bagno"
