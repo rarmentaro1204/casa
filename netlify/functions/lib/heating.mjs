@@ -2,7 +2,7 @@ import { getStore } from '@netlify/blobs';
 import { config, command } from './core.mjs';
 
 const store = () => getStore('casa');
-const RETRY_MS = 5 * 60e3;
+const RETRY_MS = 90e3;
 
 export function romeNow(d = new Date()) {
   const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hour12: false, weekday: 'short' }).formatToParts(d).map((x) => [x.type, x.value]));
@@ -45,7 +45,8 @@ export const getMode = async () => (await store().get('mode', { type: 'json' }))
 export const getPolicy = async () => (await store().get('policy', { type: 'json' }))?.id || config.heating.defaultPolicy || 'app';
 
 // Manda comandi solo quando qualcosa cambia (le pile delle valvole si consumano a ogni comando).
-export async function applyHeating({ force = false } = {}) {
+// Le valvole vanno una alla volta; se il tempo a disposizione finisce, le rimaste le completa lo scheduler entro un minuto.
+export async function applyHeating({ force = false, budget = 25000 } = {}) {
   const mode = await getMode();
   if (!mode) return [];
   const want = desired(mode, romeNow(), await getPolicy()), applied = (await store().get('applied', { type: 'json' })) || {};
@@ -53,22 +54,26 @@ export async function applyHeating({ force = false } = {}) {
     const a = applied[id], w = JSON.stringify(cmd);
     return force || !a || a.want !== w || (!a.ok && Date.now() - a.at > RETRY_MS);
   });
-  const res = await Promise.allSettled(todo.map(([id, cmd]) => command(id, cmd)));
-  todo.forEach(([id, cmd], i) => { applied[id] = { want: JSON.stringify(cmd), ok: res[i].status === 'fulfilled', at: Date.now(), error: res[i].reason?.message }; });
+  const out = [], deadline = Date.now() + budget;
+  for (const [id, cmd] of todo) {
+    if (Date.now() > deadline) { delete applied[id]; out.push({ device: id, ok: null }); continue; }
+    try { await command(id, cmd); applied[id] = { want: JSON.stringify(cmd), ok: true, at: Date.now() }; out.push({ device: id, ok: true }); }
+    catch (e) { applied[id] = { want: JSON.stringify(cmd), ok: false, at: Date.now(), error: e.message }; out.push({ device: id, ok: false, error: e.message }); }
+  }
   await store().setJSON('applied', applied);
-  return todo.map(([id], i) => ({ device: id, ok: res[i].status === 'fulfilled', error: res[i].reason?.message }));
+  return out;
 }
 
 export async function setMode(id) {
   if (!config.modes.some((m) => m.id === id)) throw new Error('Scenario sconosciuto');
   await store().setJSON('mode', { id, at: Date.now() });
-  return applyHeating({ force: true });
+  return applyHeating({ force: true, budget: 7000 });
 }
 
 export async function setPolicy(id) {
   if (!['app', 'meross'].includes(id)) throw new Error('Opzione sconosciuta');
   await store().setJSON('policy', { id });
-  return applyHeating({ force: true });
+  return applyHeating({ force: true, budget: 7000 });
 }
 
 const describe = (c) => (c.mode === 'auto' ? 'programma Meross' : !c.on ? 'spenta' : c.target === 'max' ? 'massimo' : `${c.target}°`);

@@ -60,20 +60,34 @@ async function connect() {
   const request = (uuid, method, namespace, payload) => new Promise((resolve, reject) => {
     const messageId = md5(crypto.randomUUID()), timestamp = Math.floor(Date.now() / 1000);
     const header = { messageId, method, from: respTopic, namespace, payloadVersion: 1, sign: md5(messageId + s.key + timestamp), timestamp, triggerSrc: 'Android', uuid };
-    const t = setTimeout(() => { pending.delete(messageId); reject(new Error('Meross: timeout (hub spento o offline?)')); }, 8000);
+    const t = setTimeout(() => { pending.delete(messageId); reject(new Error('Meross: timeout (hub spento o offline?)')); }, 5000);
     pending.set(messageId, (p) => { clearTimeout(t); pending.delete(messageId); resolve(p); });
     client.publish(`/appliance/${uuid}/subscribe`, JSON.stringify({ header, payload }));
   });
-  return { request, end: () => client.end(true) };
+  return { request, client, end: () => client.end(true) };
 }
-async function send(uuid, method, namespace, payload) {
-  const c = await connect();
-  try { return await c.request(uuid, method, namespace, payload); } finally { c.end(); }
+// L'hub perde le richieste se ne arrivano molte insieme: le metto in fila su una sola connessione
+// condivisa (chiusa dopo 15 s di inattività), con un nuovo tentativo se una richiesta va persa.
+let shared = null, idle = null, chain = Promise.resolve();
+function drop() { clearTimeout(idle); const c = shared; shared = null; c?.then((x) => x.end(), () => {}); }
+function conn() {
+  if (!shared) {
+    const p = connect();
+    shared = p;
+    p.then((c) => c.client.once('close', () => { if (shared === p) shared = null; }), () => { if (shared === p) shared = null; });
+  }
+  clearTimeout(idle); idle = setTimeout(drop, 15000); idle.unref?.();
+  return shared;
 }
-async function sendMany(uuid, list) {
-  const c = await connect();
-  try { for (const [method, namespace, payload] of list) await c.request(uuid, method, namespace, payload); } finally { c.end(); }
+async function request(uuid, method, namespace, payload) {
+  for (let i = 0; ; i++) {
+    try { return await (await conn()).request(uuid, method, namespace, payload); }
+    catch (e) { drop(); if (i >= 1) throw e; }
+  }
 }
+const queued = (fn) => { const run = chain.then(fn, fn); chain = run.catch(() => {}); return run; };
+const send = (uuid, method, namespace, payload) => queued(() => request(uuid, method, namespace, payload));
+const sendMany = (uuid, list) => queued(async () => { for (const [method, namespace, payload] of list) await request(uuid, method, namespace, payload); });
 
 // hubUuid in configurazione: UUID vero, nome dell'hub nell'app, oppure "auto" (se l'account ha un solo hub MSH).
 const hubs = new Map();

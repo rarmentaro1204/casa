@@ -204,7 +204,7 @@ function renderHeat() {
 }
 async function setPolicy(p) {
   toast('Applico…');
-  try { const r = await api('policy', { method: 'POST', body: JSON.stringify({ policy: p }) }); const bad = (r || []).filter((x) => !x.ok); toast(bad.length ? `${bad.length} valvole non raggiunte: ${bad[0].error}` : 'Fatto ✓'); } catch (e) { toast('Errore: ' + e.message); }
+  try { const r = await api('policy', { method: 'POST', body: JSON.stringify({ policy: p }) }); const bad = (r || []).filter((x) => x.ok === false); toast(bad.length ? `${bad.length} valvole non raggiunte: ${bad[0].error}` : 'Fatto ✓'); } catch (e) { toast('Errore: ' + e.message); }
   refresh();
 }
 
@@ -212,8 +212,8 @@ async function setMode(id, name) {
   const prev = mode; mode = id; render(); toast(`${name}…`);
   try {
     const r = await api('mode', { method: 'POST', body: JSON.stringify({ mode: id }) });
-    const bad = (r || []).filter((x) => !x.ok);
-    toast(bad.length ? `${name}: ${bad.length} valvole non raggiunte. ${bad[0].error || ''}` : `${name} attivo ✓`); refresh();
+    const bad = (r || []).filter((x) => x.ok === false), wait = (r || []).filter((x) => x.ok === null).length;
+    toast(bad.length ? `${name}: ${bad.length} valvole non raggiunte. ${bad[0].error || ''}` : wait ? `${name} attivo ✓ · ${wait} valvole si aggiornano entro un minuto` : `${name} attivo ✓`); refresh();
   } catch (e) { mode = prev; render(); toast('Errore: ' + e.message); }
 }
 async function loadValves() {
