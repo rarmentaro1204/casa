@@ -118,7 +118,7 @@ export function snapshot(hubUuid, fresh = false) {
       const d = all.all?.find((a) => a.id === x.subDeviceId);
       const b = bat.battery?.find((a) => a.id === x.subDeviceId);
       const t = d?.temperature;
-      return { hub, id: x.subDeviceId, name: x.subDeviceName, online: d?.online?.status === 1, mode: d?.mode?.state, on: d?.togglex?.onoff === 1,
+      return { hub, id: x.subDeviceId, name: x.subDeviceName, online: d?.online?.status === 1, mode: d?.mode?.state, heating: t?.heating === 1, on: d?.togglex?.onoff === 1,
         current: t ? t.room / 10 : undefined, target: t ? t.currentSet / 10 : undefined, min: t ? t.min / 10 : 5, max: t ? t.max / 10 : 35, batteryMv: b?.value };
     });
   })();
@@ -167,5 +167,5 @@ export async function thermostat(dev, cmd) {
 
 export async function readThermostat(dev) {
   const v = await find(dev);
-  return { current: v.current, target: v.target, on: v.on, online: v.online, batteryMv: v.batteryMv, meMode: v.mode };
+  return { current: v.current, target: v.target, on: v.on, online: v.online, batteryMv: v.batteryMv, meMode: v.mode, heating: v.heating };
 }

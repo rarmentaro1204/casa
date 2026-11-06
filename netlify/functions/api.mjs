@@ -15,7 +15,15 @@ export default async (req) => {
   const path = new URL(req.url).pathname.replace(/^\/api\/?/, '');
   const body = req.method === 'POST' || req.method === 'PUT' ? await req.json().catch(() => ({})) : {};
   try {
-    if (path === 'config') return json({ devices: cfg.devices.map(({ id, name, room, type }) => ({ id, name, room, type })), scenes: cfg.scenes.map(({ id, name, icon }) => ({ id, name, icon })), modes: cfg.modes }); 
+    if (path === 'config') {
+      const h = cfg.heating;
+      return json({
+        devices: cfg.devices.map(({ id, name, room, type, subName }) => ({ id, name, room, type, label: subName || name })),
+        scenes: cfg.scenes.map(({ id, name, icon }) => ({ id, name, icon })),
+        modes: cfg.modes,
+        heating: { group: h.group, base: h.base.devices, always: h.always, temp: h.temp, baseTemp: h.base.temp, awayTemp: h.away.temp, winter: h.winter },
+      });
+    }
     if (path === 'mode' && req.method === 'GET') return json({ mode: await getMode() });
     if (path === 'heating') return json(await heatingStatus());
     if (path === 'policy') return json(await setPolicy(body.policy));

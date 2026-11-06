@@ -2,270 +2,768 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Casa">
+<meta name="theme-color" content="#0e1013">
 <link rel="manifest" href="manifest.json">
 <title>Casa</title>
 <style>
-:root{--bg:#0f1216;--panel:#181d24;--panel2:#202731;--line:#2a323d;--text:#eef2f6;--mut:#8a97a8;--acc:#ffb547;--cool:#4cc3ff;--hot:#ff7a59;--ok:#4ade80;--bad:#f87171;--r:20px}
-@media(prefers-color-scheme:light){:root{--bg:#f2f4f7;--panel:#fff;--panel2:#eef1f5;--line:#dfe4ea;--text:#141a22;--mut:#667385}}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:17px/1.35 -apple-system,system-ui,sans-serif}
-body{padding:env(safe-area-inset-top) 20px env(safe-area-inset-bottom)}
-header{display:flex;align-items:center;gap:16px;padding:18px 0 10px}
-h1{font-size:28px;margin:0;flex:1;font-weight:700}
-#clock{color:var(--mut);font-variant-numeric:tabular-nums}
-.chip{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:10px 18px;border-radius:99px;font-size:16px;min-height:44px}
-.chip.on{background:var(--acc);color:#1a1200;border-color:var(--acc);font-weight:600}
-nav{display:flex;gap:10px;overflow-x:auto;padding:6px 0 14px;scrollbar-width:none}
-.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding-bottom:12px}
-.mode{min-height:92px;border-radius:var(--r);border:2px solid var(--line);background:var(--panel);color:var(--text);text-align:left;padding:14px 18px;display:flex;flex-direction:column;gap:2px}
-.mode b{font-size:20px}.mode span{color:var(--mut);font-size:14px}.mode.sel{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,var(--panel))}
-.heat{margin:0 0 12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 16px}.heat summary{cursor:pointer;color:var(--mut);min-height:36px;display:flex;align-items:center}.heat .hl{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:15px}.heat .row{margin:8px 0;align-items:center;flex-wrap:wrap}.heat .row .chip{flex:none;min-height:40px;padding:6px 14px;font-size:15px}
-.vrow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);gap:10px}
-.tag{font-size:13px;border-radius:99px;padding:2px 10px;background:var(--panel2)}.tag.bad{background:var(--bad);color:#fff}.tag.ok{background:var(--ok);color:#052e16}
-.scenes{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
-.scene{flex:0 0 auto;min-width:150px;min-height:76px;border-radius:var(--r);border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:18px;display:flex;align-items:center;gap:10px;padding:0 20px}
-.scene span{font-size:28px}.scene:active,.card button:active,.chip:active{transform:scale(.97)}
-main{align-items:start;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:6px 0 40px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:14px}
-.card h3{margin:0;font-size:18px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
-.card small{color:var(--mut);font-weight:400}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--ok)}.dot.off{background:var(--bad)}
-.row{display:flex;gap:10px}
-.card button{flex:1;min-height:64px;border-radius:16px;border:0;background:var(--panel2);color:var(--text);font-size:22px}
-.card button.big{font-size:18px}
-.card button.act{background:var(--acc);color:#1a1200;font-weight:700}
-.row.wrap{flex-wrap:wrap}.row.wrap button{min-height:52px;flex:1 1 30%;font-size:16px}.lbl{color:var(--mut);font-size:14px;margin-bottom:-6px}.card.dim h3{opacity:.7}
-.card button.cool.act{background:var(--cool)}.card button.heat.act{background:var(--hot)}
-.temp{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.temp b{font-size:46px;font-weight:300;font-variant-numeric:tabular-nums}
-.temp .set{display:flex;align-items:center;gap:12px}.temp .set button{flex:none;width:56px;min-height:56px}
-.mut{color:var(--mut);font-size:15px}
-#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,80px);background:var(--panel2);border:1px solid var(--line);padding:14px 22px;border-radius:99px;transition:.25s;opacity:0}
-#toast.show{transform:translate(-50%,0);opacity:1}
-dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:var(--r);padding:22px;width:min(560px,92vw)}
-dialog::backdrop{background:#0008}
-dialog h2{margin:0 0 14px}dialog input,dialog select{font:inherit;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text);width:100%;margin-bottom:12px}
-.sch{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
-.days{display:flex;gap:6px;margin-bottom:12px}.days .chip{padding:8px 0;flex:1;min-height:40px}
+:root{
+  --bg:#f4f2ef;--surface:#fff;--surface-2:#f1efeb;--surface-3:#e6e3de;--line:#e6e2dc;
+  --text:#16171a;--muted:#6c6e74;--faint:#a5a6ab;
+  --accent:#e2862c;--accent-ink:#2a1500;--accent-soft:#fbead8;
+  --heat:#ec6a2e;--heat-soft:#fde6db;--cool:#2794dc;--cool-soft:#ddeefc;--prog:#7a64df;--prog-soft:#ece8ff;
+  --ok:#1d9a52;--ok-soft:#dcf3e5;--bad:#d4433b;--bad-soft:#fbe2e0;--warn:#b7791f;--warn-soft:#fbf0d9;
+  --shadow:0 1px 2px rgba(20,20,20,.04),0 6px 20px rgba(20,20,20,.05);
+  --r:22px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1013;--surface:#171a1f;--surface-2:#20242b;--surface-3:#2b3039;--line:#262b33;
+  --text:#eef0f3;--muted:#949ba6;--faint:#5d646f;
+  --accent:#f2a04c;--accent-ink:#241200;--accent-soft:#3a2716;
+  --heat:#ff8b4e;--heat-soft:#3a2218;--cool:#5cb9f6;--cool-soft:#15293a;--prog:#a897ff;--prog-soft:#26203f;
+  --ok:#4bd884;--ok-soft:#14301f;--bad:#f77b72;--bad-soft:#3b1b1b;--warn:#e9b14f;--warn-soft:#352915;
+  --shadow:none;
+}}
+:root[data-theme="dark"]{
+  --bg:#0e1013;--surface:#171a1f;--surface-2:#20242b;--surface-3:#2b3039;--line:#262b33;
+  --text:#eef0f3;--muted:#949ba6;--faint:#5d646f;
+  --accent:#f2a04c;--accent-ink:#241200;--accent-soft:#3a2716;
+  --heat:#ff8b4e;--heat-soft:#3a2218;--cool:#5cb9f6;--cool-soft:#15293a;--prog:#a897ff;--prog-soft:#26203f;
+  --ok:#4bd884;--ok-soft:#14301f;--bad:#f77b72;--bad-soft:#3b1b1b;--warn:#e9b14f;--warn-soft:#352915;
+  --shadow:none;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+button{border:0;background:none;padding:0;cursor:pointer;-webkit-user-select:none;user-select:none;text-align:inherit}
+button:active{transform:scale(.98)}
+svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+/* Struttura */
+.app{display:grid;grid-template-columns:96px minmax(0,1fr);min-height:100dvh}
+.rail{position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;align-items:center;gap:6px;padding:calc(20px + env(safe-area-inset-top)) 10px 20px;background:var(--surface);border-right:1px solid var(--line);z-index:20}
+.brand{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);margin-bottom:14px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:5px;width:74px;padding:10px 0;border-radius:16px;color:var(--muted);font-size:12px;font-weight:600}
+.tab.on{background:var(--accent-soft);color:var(--accent)}
+.rail .spacer{flex:1}
+main{width:100%;max-width:1240px;padding:calc(22px + env(safe-area-inset-top)) clamp(16px,3.2vw,40px) 48px}
+@media (max-width:760px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .rail{position:fixed;inset:auto 0 0 0;height:auto;flex-direction:row;justify-content:space-around;gap:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom));border-right:0;border-top:1px solid var(--line);background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+  .brand,.rail .spacer{display:none}
+  .tab{flex:1;width:auto;padding:8px 0;font-size:11px}
+  main{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+}
+
+/* Intestazione e sezioni */
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}
+.head h1{margin:0;font-size:clamp(28px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.head .sub{color:var(--muted);margin-top:4px;font-size:15px}
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin:30px 0 12px}
+.sec h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.link{color:var(--accent);font-weight:600;font-size:15px;display:inline-flex;align-items:center;gap:2px}
+.link svg.i{width:18px;height:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+
+/* Scenari */
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.mode{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;background:var(--surface);border:1.5px solid var(--line);min-height:72px;box-shadow:var(--shadow)}
+.mode .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--surface-2);color:var(--muted);flex:none}
+.mode b{display:block;font-size:16px}
+.mode small{display:block;color:var(--muted);font-size:13px;line-height:1.3;margin-top:2px}
+.mode.on{border-color:var(--accent);background:var(--accent-soft)}
+.mode.on .ic{background:var(--accent);color:var(--accent-ink)}
+@media (max-width:600px){.mode{flex-direction:column;align-items:flex-start;gap:8px;padding:12px}.mode small{display:none}.mode b{font-size:14px}}
+
+/* Riepilogo riscaldamento e linea oraria */
+.hs{display:flex;gap:14px;align-items:flex-start}
+.hs .ic{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--heat-soft);color:var(--heat);flex:none}
+.hs .ic.off{background:var(--surface-2);color:var(--muted)}
+.hs .ic.prog{background:var(--prog-soft);color:var(--prog)}
+.hs b{display:block;font-size:17px}
+.hs .muted{font-size:14px;margin-top:2px}
+.tl{position:relative;height:30px;border-radius:9px;background:var(--surface-2);overflow:hidden;margin-top:14px}
+.tl .slot{position:absolute;top:0;bottom:0;background:var(--heat);opacity:.9;border-radius:6px}
+.tl .now{position:absolute;top:0;bottom:0;width:2px;background:var(--text);box-shadow:0 0 0 2px var(--surface)}
+.tlx{display:flex;justify-content:space-between;color:var(--faint);font-size:12px;margin-top:6px}
+
+/* Avvisi */
+.alerts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.al{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;background:var(--warn-soft);color:var(--text);width:100%}
+.al.bad{background:var(--bad-soft)}
+.al svg.i{color:var(--warn)}.al.bad svg.i{color:var(--bad)}
+.al b{display:block;font-size:15px}
+.al small{display:block;color:var(--muted);font-size:13px;word-break:break-word}
+.al .chev{margin-left:auto;color:var(--faint)}
+
+/* Tessere temperatura */
+.temps{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tt{display:flex;flex-direction:column;gap:4px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);min-height:122px}
+.tt .n{font-size:14px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tt .t{font-size:36px;font-weight:300;letter-spacing:-.03em;line-height:1.05;margin-top:auto}
+.tt.heat{background:var(--heat-soft);border-color:color-mix(in srgb,var(--heat) 30%,var(--line))}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);font-weight:500}
+.st::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.st.heat{color:var(--heat)}.st.heat::before{background:var(--heat)}
+.st.ok{color:var(--ok)}.st.ok::before{background:var(--ok)}
+.st.prog{color:var(--prog)}.st.prog::before{background:var(--prog)}
+.st.bad{color:var(--bad)}.st.bad::before{background:var(--bad)}
+
+/* Azioni rapide */
+.quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.qa{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);min-height:64px;font-weight:600;font-size:15px}
+.qa .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--surface-2);color:var(--muted);flex:none}
+
+/* Clima: valvole */
+.hcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.hcard-top h3{margin:0;font-size:19px}
+.grp{margin-top:18px}
+.grp h4{margin:0 0 2px;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.vl{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:14px;width:100%;padding:12px 2px;border-bottom:1px solid var(--line)}
+.vl:last-child{border-bottom:0}
+.vl .nm b{display:block;font-weight:600;font-size:16px}
+.vl .nm .err{display:block;color:var(--bad);font-size:13px;margin-top:2px}
+.vl .cur{font-size:24px;font-weight:300;letter-spacing:-.02em;text-align:right;min-width:64px}
+.vl .tg{font-size:13px;color:var(--muted);text-align:right;min-width:88px}
+.vl svg.i{color:var(--faint);width:18px;height:18px}
+@media (max-width:520px){.vl{grid-template-columns:minmax(0,1fr) auto}.vl .tg{display:none}}
+
+/* Controlli comuni */
+.seg{display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2);overflow-x:auto;scrollbar-width:none}
+.seg button{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border-radius:11px;font-size:14px;font-weight:600;color:var(--muted);white-space:nowrap}
+.seg button svg.i{width:18px;height:18px}
+.seg button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg.wrap{flex-wrap:wrap}.seg.wrap button{flex:1 1 30%}
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.stepper button{width:56px;height:56px;border-radius:18px;background:var(--surface-2);display:grid;place-items:center}
+.stepper .v{font-size:52px;font-weight:300;letter-spacing:-.03em;text-align:center;line-height:1}
+.stepper .v small{display:block;font-size:13px;letter-spacing:0;color:var(--muted);font-weight:500;margin-top:6px}
+.btn{min-height:52px;padding:0 18px;border-radius:16px;background:var(--surface-2);font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.primary{background:var(--text);color:var(--bg)}
+.btn.on{background:var(--accent);color:var(--accent-ink)}
+.btns{display:flex;gap:10px;margin-top:16px}.btns .btn{flex:1}
+.lbl{font-size:13px;font-weight:600;color:var(--muted);margin:18px 0 8px}
+.hint{display:flex;gap:10px;align-items:flex-start;margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--surface-2);font-size:14px;color:var(--muted)}
+.hint svg.i{width:18px;height:18px;margin-top:1px}
+
+/* Climatizzatori */
+.ac-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ac-top b{font-size:18px;display:block}.ac-top small{color:var(--muted);font-size:14px}
+.pwr{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);color:var(--muted);flex:none}
+.pwr.on{background:var(--cool);color:#fff}
+.ac .stepper{margin:18px 0}
+.ac.off .stepper,.ac.off .seg{opacity:.45}
+.ac .more{margin-top:12px;width:100%;justify-content:center}
+
+/* Luci e tapparelle */
+.room h3{margin:0 0 12px;font-size:18px}
+.rows{display:flex;flex-direction:column;gap:8px}
+.lt{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border-radius:16px;background:var(--surface-2);font-weight:600;min-height:60px}
+.lt .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--surface-3);color:var(--muted);flex:none}
+.lt.on{background:var(--accent-soft)}.lt.on .ic{background:var(--accent);color:var(--accent-ink)}
+.lt .r{margin-left:auto;font-size:13px;font-weight:500;color:var(--muted)}
+.sh{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:var(--surface-2);min-height:60px}
+.sh .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--surface-3);color:var(--muted);flex:none}
+.sh b{font-weight:600}
+.sh .ctl{margin-left:auto;display:flex;gap:6px}
+.sh .ctl button{width:48px;height:44px;border-radius:12px;background:var(--surface);display:grid;place-items:center}
+.sh .ctl button.on{background:var(--accent);color:var(--accent-ink)}
+.err-line{color:var(--bad);font-size:13px;margin-top:-2px;padding:0 4px}
+
+/* Ingresso */
+.lock{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:28px 20px}
+.lock .big{width:96px;height:96px;border-radius:30px;display:grid;place-items:center;background:var(--ok-soft);color:var(--ok);margin-bottom:8px}
+.lock .big.open{background:var(--bad-soft);color:var(--bad)}
+.lock .big svg.i{width:44px;height:44px}
+.lock h3{margin:0;font-size:24px}
+.lock .btns{width:100%}
+.hold{position:relative;overflow:hidden}
+.hold::before{content:"";position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);opacity:.35}
+.hold.holding::before{width:100%;transition:width 1.2s linear}
+.hold>*{position:relative}
+
+/* Pannello dal basso */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;width:min(560px,100%);max-height:90dvh;overflow:auto;overscroll-behavior:contain;background:var(--surface);border-radius:26px 26px 0 0;padding:8px 20px calc(24px + env(safe-area-inset-bottom));z-index:41;transform:translate(-50%,105%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.sheet.open{transform:translate(-50%,0)}
+.sheet:not(.open){visibility:hidden;transition:transform .28s,opacity .2s,visibility 0s .3s}
+@media (min-width:761px){
+  .sheet{top:50%;bottom:auto;border-radius:26px;padding-bottom:24px;opacity:0;pointer-events:none;transform:translate(-50%,-46%);transition:opacity .2s,transform .22s}
+  .sheet.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+  .grab{display:none}
+}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--surface-3);margin:4px auto 12px}
+.sheet-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:6px 0 18px}
+.sheet-h h3{margin:0;font-size:22px}
+.sheet-h .muted{font-size:14px;margin-top:2px}
+.x{width:36px;height:36px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;flex:none}
+.x svg.i{width:18px;height:18px}
+.bigtemp{text-align:center;margin:4px 0 18px}
+.bigtemp .t{font-size:64px;font-weight:200;letter-spacing:-.04em;line-height:1}
+.bigtemp small{display:block;color:var(--muted);margin-top:6px}
+.list .row{display:flex;align-items:center;gap:12px;width:100%;padding:14px 2px;border-bottom:1px solid var(--line)}
+.list .row:last-child{border-bottom:0}
+.list .row .grow{flex:1;min-width:0}
+.list .row b{display:block;font-weight:600}
+.list .row small{display:block;color:var(--muted);font-size:13px;word-break:break-word}
+.tag{font-size:12px;font-weight:600;border-radius:99px;padding:3px 9px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.form{display:flex;flex-direction:column;gap:10px}
+.form select,.form input{width:100%;padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2)}
+.days{display:flex;gap:6px}
+.days button{flex:1;height:42px;border-radius:12px;background:var(--surface-2);font-weight:600;color:var(--muted)}
+.days button.on{background:var(--accent);color:var(--accent-ink)}
+h4.sh4{margin:22px 0 8px;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,120px);max-width:min(92vw,520px);background:var(--text);color:var(--bg);padding:13px 20px;border-radius:16px;font-weight:600;font-size:15px;transition:transform .25s;z-index:60;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+#toast:not(.show){visibility:hidden;transition:transform .25s,visibility 0s .3s}
+@media (max-width:760px){#toast{bottom:calc(84px + env(safe-area-inset-bottom))}}
+.empty{color:var(--muted);padding:12px 0}
 </style>
 </head>
 <body>
-<header><h1 id="title">Casa</h1><span id="clock"></span><button class="chip" id="valBtn">🔧 Diagnostica</button><button class="chip" id="schBtn">⏰ Orari</button></header>
-<div class="modes" id="modes"></div>
-<details class="heat" id="heat"></details>
-<div class="scenes" id="scenes"></div>
-<nav id="rooms"></nav>
-<main id="grid"></main>
-<div id="toast"></div>
-
-<dialog id="valDlg"><h2>Diagnostica</h2><div id="valList"><p class="mut">Interrogo l'hub…</p></div><div id="devList"></div><div class="row" style="margin-top:14px"><button class="chip" id="valRe">Ricontrolla</button><button class="chip" id="valClose">Chiudi</button></div></dialog>
-<dialog id="schDlg"><h2>Orari automatici</h2><div id="schList"></div>
-  <h3>Nuovo orario</h3>
-  <select id="schScene"></select>
-  <input id="schTime" type="time" value="07:30">
-  <div class="days" id="schDays"></div>
-  <div class="row" style="gap:10px"><button class="chip on" id="schAdd">Aggiungi</button><button class="chip" id="schClose">Chiudi</button></div>
-</dialog>
+<div class="app">
+  <nav class="rail" id="rail"></nav>
+  <main id="view"></main>
+</div>
+<div class="scrim" id="scrim" data-close></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div id="toast" role="status"></div>
 
 <script>
-const $ = (s) => document.querySelector(s);
-const qs = new URLSearchParams(location.search);
-let DEMO = qs.has('demo'), mode = null, heat = null, cfg, st = {}, room = 'Tutte', schedules = [];
+// ---------------------------------------------------------------- utilità
+const $ = (s, r = document) => r.querySelector(s);
+const h = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ls = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} } };
+const fmt = (x, d = 1) => (x == null || Number.isNaN(+x) ? '--' : (+x).toLocaleString('it-IT', { maximumFractionDigits: d }));
+const cmdAttr = (id, c) => `data-id="${h(id)}" data-cmd='${JSON.stringify(c)}'`;
+const toast = (m) => { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2600); };
 
-// ---------- API (con modalità demo locale) ----------
-const demo = {
-  cfg: { devices: [
-    {id:'s1',name:'Tapparella',room:'Soggiorno',type:'shutter'},{id:'l1',name:'Luce',room:'Soggiorno',type:'light'},
-    {id:'t1',name:'Termovalvola',room:'Soggiorno',type:'thermostat'},{id:'a1',name:'Climatizzatore',room:'Soggiorno',type:'ac'},
-    {id:'s2',name:'Tapparella',room:'Camera',type:'shutter'},{id:'l2',name:'Luce',room:'Camera',type:'light'},
-    {id:'t2',name:'Termovalvola',room:'Camera',type:'thermostat'},{id:'a2',name:'Climatizzatore',room:'Camera',type:'ac'},
-    {id:'p1',name:'Portone',room:'Ingresso',type:'door'},{id:'k1',name:'Serratura',room:'Ingresso',type:'lock'},{id:'l3',name:'Luce',room:'Cucina',type:'light'},{id:'s3',name:'Tapparella',room:'Cucina',type:'shutter'}],
-    modes: [{id:'inverno',name:'Casa inverno',icon:'🔥',info:'Lun–Ven 6–8 e 18–20 · Sab–Dom 6–9 e 18–20 · 21°'},{id:'fuori',name:'Esco di casa',icon:'🚪',info:'Valvole spente (bagno resta al massimo)'},{id:'estate',name:'Casa estate',icon:'☀️',info:'Tutto spento, bagno al massimo'}],
-    scenes: [{id:'buongiorno',name:'Buongiorno',icon:'☀️'},{id:'buonanotte',name:'Buonanotte',icon:'🌙'}] },
-  st: { t1:{current:20.4,target:21,on:true,online:true}, t2:{current:19.1,target:19,on:true,online:true}, a1:{on:true,target:24,mode:'cool',fan:'auto',swing:false,online:true,caps:{modes:['cool','heat','auto','dry','wind'],fans:['auto','low','mid','high'],swing:true,extras:['eco','sleep'],temp:{min:16,max:30,step:1}}}, a2:{on:false,target:22,mode:'heat',fan:'low',online:true,caps:{modes:['cool','heat','auto'],fans:['auto','low','high'],swing:false,extras:[],temp:{min:16,max:30,step:1}}}, l1:{on:true,online:true}, k1:{locked:true,battery:92,online:true} },
+const P = {
+  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
+  thermo: '<path d="M14 14.8V4.5a2 2 0 0 0-4 0v10.3a4 4 0 1 0 4 0Z"/><path d="M12 10v6"/>',
+  flame: '<path d="M12 22c3.9 0 7-2.8 7-6.6 0-3-1.8-5.2-3.5-7C14 7 13 4.8 13 2c-3 2-5 5-5 8 0 1 .3 2 .8 2.8C7.6 12.3 6.5 11 6.2 9.5 5.4 10.9 5 12.6 5 14.5 5 18.9 8.1 22 12 22Z"/>',
+  snow: '<path d="M12 2v20M4.9 4.9l14.2 14.2M2 12h20M4.9 19.1 19.1 4.9"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>',
+  bulb: '<path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V18h6v-1.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2Z"/>',
+  blinds: '<rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M4 8h16M4 12h16M4 16h16"/>',
+  door: '<path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17"/><path d="M3 21h18"/><path d="M15 12h.01"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  unlock: '<rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 7.8-1.3"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
+  power: '<path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/>',
+  up: '<path d="m6 15 6-6 6 6"/>', down: '<path d="m6 9 6 6 6-6"/>', stop: '<rect x="7" y="7" width="10" height="10" rx="2"/>',
+  right: '<path d="m9 6 6 6-6 6"/>', x: '<path d="M6 6l12 12M18 6 6 18"/>', minus: '<path d="M5 12h14"/>', plus: '<path d="M12 5v14M5 12h14"/>',
+  wind: '<path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h7"/>',
+  drop: '<path d="M12 2.7s6 6.3 6 11.3a6 6 0 0 1-12 0c0-5 6-11.3 6-11.3Z"/>',
+  auto: '<path d="M21 12a9 9 0 0 1-15.5 6.2M3 12a9 9 0 0 1 15.5-6.2"/><path d="M21 4v5h-5M3 20v-5h5"/>',
+  leaf: '<path d="M11 20A7 7 0 0 1 4 13c0-6 7-9 16-9 0 9-3 16-9 16Z"/><path d="M4 21c3-5 6-8 10-10"/>',
+  alert: '<path d="M12 3 2 21h20L12 3Z"/><path d="M12 10v5M12 18h.01"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4 2.5-2.5Z"/>',
+  leave: '<path d="M10 3H5a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h5"/><path d="m15 16 4-4-4-4M19 12H9"/>',
+  swing: '<path d="M12 3v18M7 8l5-5 5 5M7 16l5 5 5-5"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/>',
+  palette: '<circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18" fill="currentColor" stroke="none"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
 };
+const I = (n, c = '') => `<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ''}</svg>`;
+
+const MODE_IC = { inverno: 'flame', fuori: 'leave', estate: 'sun' };
+const AC_MODE = { cool: ['snow', 'Freddo'], cold: ['snow', 'Freddo'], heat: ['sun', 'Caldo'], hot: ['sun', 'Caldo'], auto: ['auto', 'Auto'], dry: ['drop', 'Deumidifica'], wet: ['drop', 'Deumidifica'], wind: ['wind', 'Ventola'], fan: ['wind', 'Ventola'] };
+const FAN = { auto: 'Auto', low: 'Bassa', mid: 'Media', middle: 'Media', high: 'Alta', mute: 'Silenziosa', turbo: 'Turbo', strong: 'Forte' };
+const EXTRA = { eco: ['leaf', 'Eco'], sleep: ['moon', 'Notte'], turbo: ['wind', 'Turbo'], health: ['leaf', 'Salute'], light: ['sun', 'Display'], child_lock: ['lock', 'Blocco'] };
+const DAYN = ['', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
+
+// ---------------------------------------------------------------- stato
+const qs = new URLSearchParams(location.search);
+let DEMO = qs.has('demo');
+const S = { cfg: null, st: {}, heat: null, view: ls.get('view') || 'home', sheet: null };
+let holding = false, pinResolve = null;
+const theme = ls.get('theme'); if (theme) document.documentElement.dataset.theme = theme;
+
+const devs = (type) => (S.cfg?.devices || []).filter((d) => d.type === type);
+const byId = (id) => (S.cfg?.devices || []).find((d) => d.id === id);
+const label = (d) => d?.label || d?.name || '';
+const heatFor = (id) => (S.heat?.devices || []).find((x) => x.id === id);
+
+// ---------------------------------------------------------------- tempo
+function romeNow(d = new Date()) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hour12: false, weekday: 'short' }).formatToParts(d).map((x) => [x.type, x.value]));
+  return { hhmm: `${p.hour === '24' ? '00' : p.hour}:${p.minute}`, day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(p.weekday) + 1 };
+}
+const toMin = (s) => +s.slice(0, 2) * 60 + +s.slice(3, 5);
+const slotsFor = (day) => { const w = S.cfg?.heating?.winter; return w ? (day <= 5 ? w.weekdays : w.weekend) : []; };
+const inSlot = (now = romeNow()) => slotsFor(now.day).some(([a, b]) => now.hhmm >= a && now.hhmm < b);
+function whenLabel(next) {
+  if (!next) return '';
+  const now = romeNow(), left = 1440 - toMin(now.hhmm);
+  if (next.inMin < left) return `alle ${next.at}`;
+  if (next.inMin < left + 1440) return `domani alle ${next.at}`;
+  return `${DAYN[next.day]} alle ${next.at}`;
+}
+
+// ---------------------------------------------------------------- API (+ demo)
 async function api(path, opts = {}) {
   if (DEMO) return demoApi(path, opts);
-  const pin = localStorage.getItem('pin') || '';
-  const r = await fetch('/api/' + path, { ...opts, headers: { 'content-type': 'application/json', 'x-pin': pin } });
-  if (r.status === 401) { const p = prompt('PIN'); if (p) { localStorage.setItem('pin', p); return api(path, opts); } }
-  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.status);
+  const r = await fetch('/api/' + path, { ...opts, headers: { 'content-type': 'application/json', 'x-pin': ls.get('pin') || '' } });
+  if (r.status === 401) {
+    const pin = await askPin();
+    if (pin) { ls.set('pin', pin); return api(path, opts); }
+    throw new Error('PIN richiesto');
+  }
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Errore ' + r.status);
   return r.json();
 }
-function demoApi(path, opts) {
+
+const demo = (() => {
+  const v = (id, label, room) => ({ id, name: 'Termovalvola', room, type: 'thermostat', label });
+  const cfg = {
+    devices: [
+      v('vs', 'Soggiorno', 'Soggiorno'), v('vss', 'Soggiorno sud', 'Soggiorno'), v('vc', 'Cucina', 'Cucina'), v('vcm', 'Camera matrimoniale', 'Camera'),
+      v('vct', 'Cameretta', 'Cameretta'), v('vbf', 'Bagno finestra', 'Bagno'), v('vbi', 'Bagno ingresso', 'Bagno'),
+      { id: 'a1', name: 'Climatizzatore', room: 'Soggiorno', type: 'ac', label: 'Climatizzatore' }, { id: 'a2', name: 'Climatizzatore', room: 'Camera', type: 'ac', label: 'Climatizzatore' },
+      { id: 'l1', name: 'Luce', room: 'Soggiorno', type: 'light', label: 'Lampadario' }, { id: 'l2', name: 'Luce', room: 'Cucina', type: 'light', label: 'Luce' },
+      { id: 'l3', name: 'Luce', room: 'Camera', type: 'light', label: 'Luce' }, { id: 'l4', name: 'Luce', room: 'Ingresso', type: 'light', label: 'Luce' },
+      { id: 's1', name: 'Tapparella', room: 'Soggiorno', type: 'shutter', label: 'Tapparella' }, { id: 's2', name: 'Tapparella', room: 'Camera', type: 'shutter', label: 'Tapparella' },
+      { id: 's3', name: 'Tapparella', room: 'Cucina', type: 'shutter', label: 'Tapparella' },
+      { id: 'k1', name: 'Serratura', room: 'Ingresso', type: 'lock', label: "Porta d'ingresso" }, { id: 'p1', name: 'Portone', room: 'Ingresso', type: 'door', label: 'Portone del palazzo' },
+    ],
+    scenes: [{ id: 'buongiorno', name: 'Buongiorno' }, { id: 'buonanotte', name: 'Buonanotte' }],
+    modes: [{ id: 'inverno', name: 'Casa inverno', info: 'Zona giorno 21° nelle fasce orarie' }, { id: 'fuori', name: 'Esco di casa', info: 'Tutte le valvole a 15°' }, { id: 'estate', name: 'Casa estate', info: 'Riscaldamento spento' }],
+    heating: { group: ['vs', 'vss', 'vc', 'vcm'], base: ['vct', 'vbf'], always: ['vbi'], temp: 21, baseTemp: 15, awayTemp: 15, winter: { weekdays: [['06:00', '08:00'], ['18:00', '20:00']], weekend: [['06:00', '09:00'], ['18:00', '20:00']] } },
+  };
+  const caps = { modes: ['cool', 'heat', 'auto', 'dry', 'wind'], fans: ['auto', 'mute', 'low', 'mid', 'high'], swing: true, extras: ['eco', 'sleep'], temp: { min: 16, max: 30, step: 1 } };
+  const st = {
+    vs: { current: 19.6, target: 21, on: true, heating: true, online: true, batteryMv: 2950 }, vss: { current: 20.8, target: 21, on: true, online: true },
+    vc: { current: 18.9, target: 21, on: true, online: true }, vcm: { current: 19.9, target: 21, on: true, heating: true, online: true },
+    vct: { current: 16.2, target: 15, on: true, online: true }, vbf: { current: 15.4, target: 15, on: true, online: true }, vbi: { current: 23.1, target: 35, on: true, heating: true, online: true },
+    a1: { on: false, target: 24, current: 22, mode: 'heat', fan: 'auto', swing: false, extras: { eco: false, sleep: false }, caps, online: true },
+    a2: { on: true, target: 22, current: 21, mode: 'heat', fan: 'mute', caps: { ...caps, swing: false, extras: [] }, online: true },
+    l1: { on: true, online: true }, l2: { on: false, online: true }, l3: { on: false, online: true }, l4: { on: false, online: true },
+    k1: { locked: true, battery: 76, online: true },
+  };
+  return { cfg, st, mode: 'inverno', policy: 'app', sch: [{ id: 'x', scene: 'buongiorno', time: '07:00', days: [1, 2, 3, 4, 5], enabled: true }] };
+})();
+function demoHeat() {
+  const H = demo.cfg.heating, now = romeNow(), on = demo.mode === 'inverno' && demo.policy === 'app' && slotsFor(now.day).some(([a, b]) => now.hhmm >= a && now.hhmm < b);
+  const want = (id) => (H.always.includes(id) ? 'massimo' : demo.mode === 'estate' ? 'spenta' : demo.policy === 'meross' && demo.mode === 'inverno' ? 'programma Meross' : H.base.includes(id) || demo.mode === 'fuori' ? '15°' : on ? '21°' : 'spenta');
+  const ids = [...H.always, ...H.base, ...H.group];
+  let next = null;
+  if (demo.mode === 'inverno' && demo.policy === 'app') {
+    const m = toMin(now.hhmm), cut = slotsFor(now.day).flat().map(toMin).find((x) => x > m);
+    next = cut != null ? { at: `${String(Math.floor(cut / 60)).padStart(2, '0')}:${String(cut % 60).padStart(2, '0')}`, day: now.day, inMin: cut - m } : { at: slotsFor(now.day % 7 + 1)[0][0], day: now.day % 7 + 1, inMin: 1440 - m + toMin(slotsFor(now.day % 7 + 1)[0][0]) };
+  }
+  return { mode: demo.mode, policy: demo.policy, next, devices: ids.map((id) => ({ id, name: demo.cfg.devices.find((d) => d.id === id).label, want: want(id), ok: id === 'vc' ? false : true, error: id === 'vc' ? 'Meross: timeout (hub spento o offline?)' : undefined })) };
+}
+async function demoApi(path, opts) {
+  await new Promise((r) => setTimeout(r, 120));
   const body = opts.body ? JSON.parse(opts.body) : {};
   if (path === 'config') return demo.cfg;
-  if (path === 'mode') { if (opts.method === 'POST') { demo.mode = body.mode; return []; } return { mode: demo.mode || 'inverno' }; }
-  if (path === 'heating') return { mode: demo.mode || 'inverno', policy: demo.policy || 'app', next: { at: '18:00', day: 1, inMin: 60 }, devices: [{ name: 'Soggiorno', want: '21°', ok: true }, { name: 'Soggiorno sud', want: '21°', ok: true }, { name: 'Cucina', want: '21°', ok: false, error: 'Meross: timeout (hub spento o offline?)' }, { name: 'Cameretta', want: '15°', ok: true }, { name: 'Bagno finestra', want: '15°', ok: true }, { name: 'Bagno ingresso', want: 'massimo', ok: true }] };
+  if (path === 'state') return JSON.parse(JSON.stringify(demo.st));
+  if (path === 'heating') return demoHeat();
+  if (path === 'mode') { if (opts.method === 'POST') { demo.mode = body.mode; return []; } return { mode: demo.mode }; }
   if (path === 'policy') { demo.policy = body.policy; return []; }
-  if (path === 'discover') return { ewelink: { devices: [{id:'1000abc123',name:'Tapparella soggiorno SU',online:true}] }, tuya: { error: 'Tuya: No space permission' } };
-  if (path === 'valves') return { valves: [{id:'a',name:'Soggiorno',online:true,duplicate:false,configured:true,current:20.4,target:21,batteryMv:2950},{id:'b',name:'Soggiorno sud',online:true,duplicate:false,configured:true,current:19.8,target:21,batteryMv:2900},{id:'c',name:'Cucina',online:false,duplicate:false,configured:true,batteryMv:2100},{id:'d',name:'Cucina',online:true,duplicate:true,configured:true,current:20,target:21,batteryMv:3000},{id:'e',name:'Bagno ingresso',online:true,duplicate:false,configured:true,current:22,target:35,batteryMv:2950}], missing: [] };
-  if (path === 'state') return demo.st;
-  if (path === 'command') { demo.st[body.device] = { ...demo.st[body.device], ...body.command, online: true }; return { ok: true }; }
-  if (path === 'scene') { const off = body.scene !== 'buongiorno'; demo.cfg.devices.forEach((d) => { if (d.type === 'light') demo.st[d.id] = { on: !off }; if (d.type === 'shutter') demo.st[d.id] = { action: off ? 'down' : 'up' }; }); return []; }
-  if (path === 'schedules') { if (opts.method === 'PUT') demo.sch = body.schedules; return demo.sch || []; }
+  if (path === 'command') { const s = demo.st[body.device] || {}; demo.st[body.device] = { ...s, ...body.command, extras: { ...(s.extras || {}), ...Object.fromEntries(Object.entries(body.command).filter(([k]) => EXTRA[k])) } }; return { ok: true }; }
+  if (path === 'scene') return [];
+  if (path === 'schedules') { if (opts.method === 'PUT') demo.sch = body.schedules; return demo.sch; }
+  if (path === 'valves') return { missing: [], valves: demo.cfg.heating.group.concat(demo.cfg.heating.base, demo.cfg.heating.always).map((id) => { const s = demo.st[id]; return { id, name: demo.cfg.devices.find((d) => d.id === id).label, online: true, configured: true, duplicate: false, current: s.current, target: s.target, batteryMv: 2900, mode: 0 }; }) };
+  if (path === 'discover') return { ewelink: { error: 'Mancano su Netlify le variabili: EWELINK_APPID, EWELINK_SECRET' }, tuya: { devices: [{ id: '0330…', name: 'Air conditioner 2', online: true }, { id: '0252…', name: 'Air conditioner', online: true }] }, switchbot: { devices: [] } };
+  return {};
 }
 
-// ---------- UI ----------
-const MODE = { cool: ['❄', 'Freddo'], cold: ['❄', 'Freddo'], heat: ['☀', 'Caldo'], hot: ['☀', 'Caldo'], auto: ['🔄', 'Auto'], dry: ['💧', 'Deumidifica'], wet: ['💧', 'Deumidifica'], wind: ['🌀', 'Ventola'], fan: ['🌀', 'Ventola'] };
-const FAN = { auto: 'Auto', low: 'Bassa', mid: 'Media', middle: 'Media', high: 'Alta', mute: 'Silenzioso', turbo: 'Turbo', strong: 'Forte', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5' };
-const EXTRA = { eco: '🌿 Eco', sleep: '😴 Notte', turbo: '⚡ Turbo', health: '🍃 Salute', light: '💡 Display', child_lock: '🔒 Blocco' };
-const ICON = { lock: '🔐', door: '🚪', shutter: '🪟', light: '💡', thermostat: '🌡️', ac: '❄️' };
-const toast = (m) => { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); };
-const h = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-
-async function send(device, command) {
-  st[device] = { ...st[device], ...command }; render();
-  try { await api('command', { method: 'POST', body: JSON.stringify({ device, command }) }); }
-  catch (e) { toast('Errore: ' + e.message); refresh(); }
+// ---------------------------------------------------------------- stati derivati
+function vstat(d) {
+  const s = S.st[d.id] || {}, x = heatFor(d.id);
+  if (s.online === false) return { k: 'bad', t: 'Offline' };
+  if (x && x.ok === false) return { k: 'bad', t: 'Non raggiunta' };
+  if (s.on === false) return { k: '', t: 'Spenta' };
+  if (s.meMode === 4) return { k: 'prog', t: 'Programma Meross' };
+  if (s.heating || (s.target != null && s.current != null && s.target > s.current + 0.3)) return { k: 'heat', t: 'Scalda' };
+  if (s.on) return { k: 'ok', t: 'In temperatura' };
+  return { k: '', t: '—' };
 }
-async function scene(id, name) {
-  toast(`${name}…`);
-  try {
-    const r = await api('scene', { method: 'POST', body: JSON.stringify({ scene: id }) });
-    const bad = (r || []).filter((x) => !x.ok).length;
-    toast(bad ? `${name}: ${bad} azioni fallite` : `${name} ✓`); refresh();
-  } catch (e) { toast('Errore: ' + e.message); }
+function heatSummary() {
+  const hs = S.heat, m = hs?.mode;
+  if (!m) return { ic: 'off', icon: 'thermo', title: 'Riscaldamento non attivo', sub: 'Scegli uno scenario per avviarlo' };
+  if (m === 'estate') return { ic: 'off', icon: 'sun', title: 'Riscaldamento spento', sub: 'Solo il bagno ingresso resta al massimo' };
+  if (m === 'fuori') return { ic: '', icon: 'leave', title: `Tutte le valvole a ${S.cfg.heating?.awayTemp ?? 15}°`, sub: 'Fino a quando torni a «Casa inverno»' };
+  if (hs.policy === 'meross') return { ic: 'prog', icon: 'clock', title: 'Le valvole seguono i programmi Meross', sub: 'Gli orari si cambiano nell’app Meross' };
+  const on = inSlot(), t = S.cfg.heating?.temp ?? 21, w = whenLabel(hs.next);
+  return on ? { ic: '', icon: 'flame', title: `Zona giorno a ${t}°`, sub: w ? `Si spegne ${w}` : '' }
+            : { ic: 'off', icon: 'flame', title: 'Zona giorno spenta', sub: w ? `Si accende a ${t}° ${w}` : '' };
 }
-
-function card(d) {
-  const s = st[d.id] || {}, a = (c) => `data-id="${d.id}" data-cmd='${JSON.stringify(c)}'`;
-  const dot = s.online === false ? '<i class="dot off" title="offline"></i>' : '';
-  const head = `<h3><span>${ICON[d.type]} ${h(d.name)} <small>${room === 'Tutte' ? h(d.room) : ''}</small></span>${dot}</h3>${s.online === false && s.error ? `<div class="mut" style="color:var(--bad);user-select:text">${h(s.error)}</div>` : ''}`;
-  if (d.type === 'light') return `<div class="card">${head}<div class="row"><button class="big ${s.on ? 'act' : ''}" ${a({ on: !s.on })}>${s.on ? 'Accesa' : 'Spenta'}</button></div></div>`;
-  if (d.type === 'lock') return `<div class="card">${head}<div class="temp"><b style="font-size:34px">${s.locked === undefined ? '--' : s.locked ? '🔒 Chiusa' : '🔓 Aperta'}</b>${s.battery != null ? `<span class="mut">pila ${s.battery}%</span>` : ''}</div><div class="row"><button class="big ${s.locked ? 'act' : ''}" ${a({ locked: true })}>Chiudi</button><button class="big" data-door="${d.id}" data-hold='{"locked":false}'>Tieni premuto per aprire</button></div></div>`;
-  if (d.type === 'door') return `<div class="card">${head}<button class="big hold" data-door="${d.id}">Tieni premuto per aprire</button></div>`;
-  if (d.type === 'shutter') return `<div class="card">${head}<div class="row">
-    <button class="${s.action === 'up' ? 'act' : ''}" ${a({ action: 'up' })}>▲</button>
-    <button class="big" ${a({ action: 'stop' })}>■ Stop</button>
-    <button class="${s.action === 'down' ? 'act' : ''}" ${a({ action: 'down' })}>▼</button></div></div>`;
-  if (d.type === 'thermostat') return `<div class="card">${head}<div class="temp"><div><b>${s.current ?? '--'}°</b><div class="mut">attuale</div></div>
-    <div class="set"><button ${a({ target: (s.target ?? 20) - 0.5 })}>−</button><div style="text-align:center"><b style="font-size:34px">${s.target ?? '--'}°</b><div class="mut">impostata</div></div><button ${a({ target: (s.target ?? 20) + 0.5 })}>+</button></div></div>
-    <div class="row"><button class="big heat ${s.on ? 'act' : ''}" ${a({ on: !s.on })}>${s.on ? 'Attiva' : 'Spenta'}</button></div></div>`;
-  if (d.type === 'ac') {
-    const c = s.caps || { modes: ['cool', 'heat', 'auto', 'dry', 'wind'], fans: ['auto', 'low', 'mid', 'high'], swing: true, extras: ['eco', 'sleep'], temp: { min: 16, max: 30, step: 1 } };
-    const step = c.temp.step || 1, t = s.target ?? 24;
-    const btn = (cmd, label, active, cls = '') => `<button class="big ${cls} ${active ? 'act' : ''}" ${a(cmd)}>${label}</button>`;
-    return `<div class="card ${s.on ? '' : 'dim'}">${head}<div class="temp"><div class="mut">${s.current != null ? s.current + '° attuale' : ''}</div>
-    <div class="set"><button ${a({ target: Math.max(c.temp.min, t - step) })}>−</button><b style="font-size:42px">${s.target ?? '--'}°</b><button ${a({ target: Math.min(c.temp.max, t + step) })}>+</button></div></div>
-    <div class="row">${btn({ on: !s.on }, s.on ? '⏻ Acceso' : '⏻ Spento', s.on)}</div>
-    ${c.modes.length ? '' : `<div class="lbl">Modalità non rilevate${c.codes ? ' (codici: ' + c.codes.join(', ') + '; mode = ' + JSON.stringify(c.modeRaw || null) + ')' : ''}</div>`}${c.modes.length ? '<div class="lbl">Modalità</div>' : ''}<div class="row wrap">${c.modes.map((m) => btn({ mode: m }, (MODE[m] || [m, m])[0] + ' ' + (MODE[m] || [m, m])[1], s.mode === m, m === 'heat' || m === 'hot' ? 'heat' : (m === 'cool' || m === 'cold') ? 'cool' : '')).join('')}</div>
-    ${c.fans.length ? `<div class="lbl">Ventola</div><div class="row wrap">${c.fans.map((f) => btn({ fan: f }, FAN[f] || f, s.fan === f)).join('')}</div>` : ''}
-    ${c.swing || c.extras.length ? `<div class="lbl">Opzioni</div><div class="row wrap">${c.swing ? btn({ swing: !s.swing }, '↕ Oscilla', s.swing) : ''}${c.extras.map((x) => btn({ [x]: !(s.extras?.[x] ?? s[x]) }, (EXTRA[x] || x), s.extras?.[x] ?? s[x])).join('')}</div>` : ''}</div>`;
+function timeline() {
+  const now = romeNow(), slots = slotsFor(now.day), pct = (m) => (m / 1440) * 100;
+  return `<div class="tl">${slots.map(([a, b]) => `<div class="slot" style="left:${pct(toMin(a))}%;width:${pct(toMin(b) - toMin(a))}%"></div>`).join('')}<div class="now" style="left:${pct(toMin(now.hhmm))}%"></div></div>
+    <div class="tlx num"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>`;
+}
+function alerts() {
+  const out = [], failing = new Set();
+  for (const x of S.heat?.devices || []) if (x.ok === false) { failing.add(x.id); out.push({ k: 'bad', icon: 'thermo', t: `${x.name}: comando non arrivato`, d: x.error, go: 'clima' }); }
+  const groups = {};
+  for (const d of S.cfg?.devices || []) {
+    const s = S.st[d.id];
+    if (s?.online === false && !failing.has(d.id)) (groups[s.error || 'Non raggiungibile'] ||= []).push(label(d) === d.name ? `${d.name} ${d.room.toLowerCase()}` : label(d));
   }
-  return '';
+  for (const [err, names] of Object.entries(groups)) out.push({ k: 'warn', icon: 'alert', t: names.length > 2 ? `${names.length} dispositivi non raggiungibili` : `${names.join(' e ')} non raggiungibil${names.length > 1 ? 'i' : 'e'}`, d: err, sheet: 'diag' });
+  for (const d of devs('lock')) {
+    const s = S.st[d.id] || {};
+    if (s.locked === false) out.push({ k: 'bad', icon: 'unlock', t: `${label(d)} aperta`, d: 'Tocca per chiuderla', go: 'ingresso' });
+    if (s.battery != null && s.battery < 20) out.push({ k: 'warn', icon: 'alert', t: `Pila ${label(d).toLowerCase()} al ${s.battery}%`, go: 'ingresso' });
+  }
+  return out;
 }
 
+// ---------------------------------------------------------------- pezzi riutilizzabili
+const head = (title, sub, right = '') => `<header class="head"><div><h1>${h(title)}</h1>${sub ? `<div class="sub">${sub}</div>` : ''}</div>${right}</header>`;
+const sec = (title, right = '') => `<div class="sec"><h2>${h(title)}</h2>${right}</div>`;
+const go = (view, text) => `<button class="link" data-go="${view}">${h(text)}${I('right')}</button>`;
+function greeting() { const hr = +romeNow().hhmm.slice(0, 2); return hr < 5 ? 'Buonanotte' : hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera'; }
+function dateLine() { return `<span id="clock">${new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</span>`; }
+
+function modesHTML() {
+  return `<div class="modes">${(S.cfg.modes || []).map((m) => `<button class="mode ${S.heat?.mode === m.id ? 'on' : ''}" data-mode="${m.id}" data-name="${h(m.name)}"><span class="ic">${I(MODE_IC[m.id] || 'home')}</span><span><b>${h(m.name)}</b><small>${h(m.info || '')}</small></span></button>`).join('')}</div>`;
+}
+function heatCard(full) {
+  const x = heatSummary(), showTl = S.heat?.mode === 'inverno' && S.heat?.policy === 'app';
+  return `<div class="hs"><span class="ic ${x.ic}">${I(x.icon)}</span><div><b>${h(x.title)}</b><div class="muted">${h(x.sub)}</div></div></div>${showTl ? timeline() : ''}
+    ${full ? '' : alertsHTML()}`;
+}
+function alertsHTML() {
+  const a = alerts();
+  if (!a.length) return '';
+  return `<div class="alerts">${a.map((x) => `<button class="al ${x.k}" ${x.go ? `data-go="${x.go}"` : `data-sheet="${x.sheet}"`}>${I(x.icon)}<span><b>${h(x.t)}</b>${x.d ? `<small>${h(x.d)}</small>` : ''}</span>${I('right', 'chev')}</button>`).join('')}</div>`;
+}
+function tempTile(d) {
+  const s = S.st[d.id] || {}, v = vstat(d);
+  return `<button class="tt ${v.k === 'heat' ? 'heat' : ''}" data-sheet="valve" data-id="${h(d.id)}"><span class="n">${h(label(d))}</span><span class="t num">${fmt(s.current)}°</span><span class="st ${v.k}">${h(v.t)}${s.on && s.target != null && s.meMode !== 4 && v.k !== 'bad' ? ` · ${fmt(s.target)}°` : ''}</span></button>`;
+}
+function valveRow(d) {
+  const s = S.st[d.id] || {}, v = vstat(d), x = heatFor(d.id);
+  return `<button class="vl" data-sheet="valve" data-id="${h(d.id)}"><span class="nm"><b>${h(label(d))}</b><span class="st ${v.k}">${h(v.t)}</span>${x?.ok === false ? `<span class="err">${h(x.error || '')}</span>` : ''}</span>
+    <span class="tg num">${x ? `obiettivo ${h(x.want)}` : s.target != null ? `→ ${fmt(s.target)}°` : ''}</span><span class="cur num">${fmt(s.current)}°</span></button>`;
+}
+
+// ---------------------------------------------------------------- viste
+const VIEWS = {
+  home() {
+    const valves = devs('thermostat'), lightsOn = devs('light').filter((d) => S.st[d.id]?.on).length;
+    const quick = [
+      ...(S.cfg.scenes || []).map((s) => `<button class="qa" data-scene="${s.id}" data-name="${h(s.name)}"><span class="ic">${I(s.id === 'buonanotte' ? 'moon' : 'sun')}</span>${h(s.name)}</button>`),
+      devs('light').length ? `<button class="qa" data-bulk="lights-off"><span class="ic">${I('bulb')}</span>Spegni le luci</button>` : '',
+      devs('shutter').length ? `<button class="qa" data-bulk="sh-down"><span class="ic">${I('down')}</span>Abbassa tapparelle</button><button class="qa" data-bulk="sh-up"><span class="ic">${I('up')}</span>Alza tapparelle</button>` : '',
+    ].join('');
+    const lock = devs('lock')[0], ls_ = lock ? S.st[lock.id] || {} : null;
+    return head(greeting(), dateLine(), lightsOn ? `<span class="tag">${lightsOn} ${lightsOn === 1 ? 'luce accesa' : 'luci accese'}</span>` : '')
+      + modesHTML()
+      + `<div class="card" style="margin-top:14px">${heatCard(false)}</div>`
+      + sec('Temperature', go('clima', 'Clima'))
+      + `<div class="temps">${valves.map(tempTile).join('')}</div>`
+      + sec('Azioni rapide') + `<div class="quick">${quick}</div>`
+      + (lock ? sec('Ingresso', go('ingresso', 'Apri')) + `<button class="qa" style="width:100%" data-go="ingresso"><span class="ic">${I(ls_.locked === false ? 'unlock' : 'lock')}</span><span>${h(label(lock))}: ${ls_.locked === undefined ? 'stato sconosciuto' : ls_.locked ? 'chiusa' : 'aperta'}</span></button>` : '');
+  },
+
+  clima() {
+    const H = S.cfg.heating || {}, pick = (ids) => (ids || []).map(byId).filter(Boolean);
+    const groups = [
+      [`Zona giorno · ${H.temp ?? 21}° nelle fasce orarie`, pick(H.group)],
+      [`Fisse a ${H.baseTemp ?? 15}°`, pick(H.base)],
+      ['Sempre al massimo', pick(H.always)],
+    ];
+    const known = new Set([...(H.group || []), ...(H.base || []), ...(H.always || [])]);
+    const others = devs('thermostat').filter((d) => !known.has(d.id));
+    if (others.length) groups.push(['Altre valvole', others]);
+    const pol = S.heat?.policy || 'app';
+    const heating = `<div class="card">
+      <div class="hcard-top"><h3>Riscaldamento</h3>
+        <div class="seg" style="max-width:100%"><button class="${pol === 'app' ? 'on' : ''}" data-policy="app">${I('clock')}Orari dell’app</button><button class="${pol === 'meross' ? 'on' : ''}" data-policy="meross">${I('auto')}Programmi Meross</button></div></div>
+      <div style="margin-top:16px">${heatCard(true)}</div>
+      ${groups.map(([t, list]) => list.length ? `<div class="grp"><h4>${h(t)}</h4>${list.map(valveRow).join('')}</div>` : '').join('')}
+    </div>`;
+    const acs = devs('ac');
+    return head('Clima', h(heatSummary().title)) + modesHTML() + `<div style="margin-top:14px">${heating}</div>`
+      + (acs.length ? sec('Climatizzatori') + `<div class="grid2">${acs.map((d) => `<div class="card ac ${S.st[d.id]?.on ? '' : 'off'}">${acControls(d, false)}</div>`).join('')}</div>` : '');
+  },
+
+  luci() {
+    const items = [...devs('light'), ...devs('shutter')], rooms = [...new Set(items.map((d) => d.room))];
+    const on = devs('light').filter((d) => S.st[d.id]?.on).length;
+    const bar = `<div class="quick" style="margin-bottom:6px">
+      <button class="qa" data-bulk="lights-off"><span class="ic">${I('bulb')}</span>Spegni tutte</button>
+      <button class="qa" data-bulk="sh-up"><span class="ic">${I('up')}</span>Alza tutte</button>
+      <button class="qa" data-bulk="sh-down"><span class="ic">${I('down')}</span>Abbassa tutte</button></div>`;
+    const room = (r) => {
+      const list = items.filter((d) => d.room === r);
+      return `<div class="card room"><h3>${h(r)}</h3><div class="rows">${list.map((d) => {
+        const s = S.st[d.id] || {}, err = s.online === false ? `<div class="err-line">${h(s.error || 'Non raggiungibile')}</div>` : '';
+        if (d.type === 'light') return `<button class="lt ${s.on ? 'on' : ''}" ${cmdAttr(d.id, { on: !s.on })}><span class="ic">${I('bulb')}</span>${h(label(d))}<span class="r">${s.on ? 'Accesa' : 'Spenta'}</span></button>${err}`;
+        return `<div class="sh"><span class="ic">${I('blinds')}</span><b>${h(label(d))}</b><span class="ctl">
+          <button class="${s.action === 'up' ? 'on' : ''}" aria-label="Alza" ${cmdAttr(d.id, { action: 'up' })}>${I('up')}</button>
+          <button aria-label="Ferma" ${cmdAttr(d.id, { action: 'stop' })}>${I('stop')}</button>
+          <button class="${s.action === 'down' ? 'on' : ''}" aria-label="Abbassa" ${cmdAttr(d.id, { action: 'down' })}>${I('down')}</button></span></div>${err}`;
+      }).join('')}</div></div>`;
+    };
+    return head('Luci e tapparelle', on ? `${on} ${on === 1 ? 'luce accesa' : 'luci accese'}` : 'Tutte le luci spente') + bar
+      + (rooms.length ? `<div class="grid2" style="margin-top:14px">${rooms.map(room).join('')}</div>` : '<p class="empty">Nessuna luce o tapparella configurata.</p>');
+  },
+
+  ingresso() {
+    const locks = devs('lock'), doors = devs('door');
+    const lockCard = (d) => {
+      const s = S.st[d.id] || {}, open = s.locked === false;
+      return `<div class="card lock"><span class="big ${open ? 'open' : ''}">${I(open ? 'unlock' : 'lock')}</span>
+        <h3>${h(label(d))}</h3><div class="muted">${s.online === false ? h(s.error || 'Non raggiungibile') : s.locked === undefined ? 'Stato sconosciuto' : open ? 'Aperta' : 'Chiusa'}${s.battery != null ? ` · pila ${s.battery}%` : ''}</div>
+        <div class="btns"><button class="btn ${open ? 'primary' : ''}" ${cmdAttr(d.id, { locked: true })}>${I('lock')}<span>Chiudi</span></button>
+        <button class="btn hold" data-id="${h(d.id)}" data-hold='{"locked":false}'>${I('unlock')}<span>Apri · tieni premuto</span></button></div></div>`;
+    };
+    const doorCard = (d) => `<div class="card lock"><span class="big" style="background:var(--surface-2);color:var(--muted)">${I('door')}</span><h3>${h(label(d))}</h3>
+        <div class="muted">${S.st[d.id]?.online === false ? h(S.st[d.id].error || 'Non raggiungibile') : 'Apre il portone tramite il citofono'}</div>
+        <div class="btns"><button class="btn hold" data-id="${h(d.id)}" data-hold='{"open":true}'>${I('key')}<span>Apri · tieni premuto</span></button></div></div>`;
+    return head('Ingresso', 'L’apertura richiede di tenere premuto il pulsante')
+      + `<div class="grid2">${locks.map(lockCard).join('')}${doors.map(doorCard).join('')}</div>`
+      + `<div class="hint">${I('info')}<span>Porta e portone non si aprono mai da scenari, orari o comandi vocali.</span></div>`;
+  },
+};
+
+// ---------------------------------------------------------------- climatizzatori
+function acControls(d, full) {
+  const s = S.st[d.id] || {}, c = s.caps || { modes: [], fans: [], swing: false, extras: [], temp: { min: 16, max: 30, step: 1 } };
+  const step = c.temp?.step || 1, t = s.target ?? 24, clamp = (x) => Math.min(c.temp?.max ?? 30, Math.max(c.temp?.min ?? 16, x));
+  const err = s.online === false ? `<div class="err-line" style="margin-top:10px">${h(s.error || 'Non raggiungibile')}</div>` : '';
+  let out = `<div class="ac-top"><div><b>${h(d.room)}</b><small>${s.current != null ? `In stanza ${fmt(s.current)}°` : h(label(d))}</small></div>
+      <button class="pwr ${s.on ? 'on' : ''}" aria-label="Accendi o spegni" ${cmdAttr(d.id, { on: !s.on })}>${I('power')}</button></div>${err}
+    <div class="stepper"><button aria-label="Meno" ${cmdAttr(d.id, { target: clamp(t - step) })}>${I('minus')}</button>
+      <div class="v num">${fmt(s.target)}°<small>${s.on ? 'impostata' : 'spento'}</small></div>
+      <button aria-label="Più" ${cmdAttr(d.id, { target: clamp(t + step) })}>${I('plus')}</button></div>`;
+  if (c.modes?.length) out += `<div class="seg wrap">${c.modes.map((m) => { const [ic, n] = AC_MODE[m] || ['auto', m]; return `<button class="${s.mode === m ? 'on' : ''}" ${cmdAttr(d.id, { mode: m })}>${I(ic)}${h(n)}</button>`; }).join('')}</div>`;
+  if (!full) {
+    if (c.fans?.length || c.swing || c.extras?.length) out += `<button class="btn more" data-sheet="ac" data-id="${h(d.id)}">Ventola e opzioni${I('right')}</button>`;
+    return out;
+  }
+  if (c.fans?.length) out += `<div class="lbl">Ventola</div><div class="seg wrap">${c.fans.map((f) => `<button class="${s.fan === f ? 'on' : ''}" ${cmdAttr(d.id, { fan: f })}>${h(FAN[f] || f)}</button>`).join('')}</div>`;
+  if (c.swing || c.extras?.length) {
+    out += `<div class="lbl">Opzioni</div><div class="seg wrap">${c.swing ? `<button class="${s.swing ? 'on' : ''}" ${cmdAttr(d.id, { swing: !s.swing })}>${I('swing')}Oscillazione</button>` : ''}`;
+    out += (c.extras || []).map((x) => { const on = s.extras?.[x] ?? s[x], [ic, n] = EXTRA[x] || ['info', x]; return `<button class="${on ? 'on' : ''}" ${cmdAttr(d.id, { [x]: !on })}>${I(ic)}${h(n)}</button>`; }).join('') + '</div>';
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- pannelli dal basso
+const sheetHead = (title, sub = '') => `<div class="sheet-h"><div><h3>${h(title)}</h3>${sub ? `<div class="muted">${sub}</div>` : ''}</div><button class="x" data-close aria-label="Chiudi">${I('x')}</button></div>`;
+const LIVE = new Set(['valve', 'ac', 'settings']);
+const SHEETS = {
+  valve(id) {
+    const d = byId(id); if (!d) return sheetHead('Valvola');
+    const s = S.st[id] || {}, v = vstat(d), x = heatFor(id), H = S.cfg.heating || {};
+    const t = typeof s.target === 'number' ? s.target : 20, set = (n) => cmdAttr(id, { on: true, target: Math.min(30, Math.max(5, Math.round(n * 2) / 2)) });
+    let hint = 'La modifica resta finché non cambi scenario.';
+    if ((H.group || []).includes(id) && S.heat?.mode === 'inverno' && S.heat?.policy === 'app' && S.heat?.next) hint = `Gli orari la cambieranno ${whenLabel(S.heat.next)}.`;
+    if (s.meMode === 4) hint = 'La valvola segue i programmi Meross: impostare una temperatura qui la mette in manuale.';
+    return sheetHead(label(d), `<span class="st ${v.k}">${h(v.t)}</span>`)
+      + `<div class="bigtemp"><div class="t num">${fmt(s.current)}°</div><small>temperatura nella stanza</small></div>`
+      + `<div class="stepper"><button aria-label="Meno" ${set(t - 0.5)}>${I('minus')}</button><div class="v num" style="font-size:40px">${s.target != null ? fmt(s.target) + '°' : '--'}<small>impostata</small></div><button aria-label="Più" ${set(t + 0.5)}>${I('plus')}</button></div>`
+      + `<div class="btns"><button class="btn ${s.on ? 'on' : ''}" ${cmdAttr(id, { on: !s.on })}>${I('power')}${s.on ? 'Accesa' : 'Spenta'}</button><button class="btn" ${cmdAttr(id, { on: true, target: 'max' })}>${I('flame')}Al massimo</button></div>`
+      + (x?.ok === false ? `<div class="hint" style="background:var(--bad-soft);color:var(--text)">${I('alert')}<span>Ultimo comando non arrivato: ${h(x.error || '')}</span></div>` : '')
+      + `<div class="hint">${I('info')}<span>${h(hint)}${s.batteryMv ? ` Pile ${(s.batteryMv / 1000).toLocaleString('it-IT', { maximumFractionDigits: 2 })} V.` : ''}</span></div>`;
+  },
+  ac(id) { const d = byId(id); return sheetHead('Climatizzatore') + `<div class="ac ${S.st[id]?.on ? '' : 'off'}">${acControls(d, true)}</div>`; },
+  settings() {
+    const th = ls.get('theme') || 'auto';
+    return sheetHead('Impostazioni') + `<div class="list">
+      <button class="row" data-sheet="sched">${I('clock')}<span class="grow"><b>Orari automatici</b><small>Avvia «Buongiorno» o «Buonanotte» a un orario</small></span>${I('right')}</button>
+      <button class="row" data-sheet="diag">${I('wrench')}<span class="grow"><b>Diagnostica</b><small>Valvole, Sonoff, condizionatori e SwitchBot trovati</small></span>${I('right')}</button>
+      <div class="row">${I('palette')}<span class="grow"><b>Aspetto</b></span><span class="seg" style="flex:none">${[['auto', 'Auto'], ['light', 'Chiaro'], ['dark', 'Scuro']].map(([k, n]) => `<button class="${th === k ? 'on' : ''}" data-theme-set="${k}">${n}</button>`).join('')}</span></div>
+      ${DEMO ? '' : `<button class="row" data-act="logout">${I('key')}<span class="grow"><b>Cambia PIN</b><small>Il PIN verrà richiesto di nuovo</small></span></button>`}
+    </div>`;
+  },
+  diag() { return sheetHead('Diagnostica', 'Cosa vedono i servizi collegati') + '<div id="diagBody"><p class="empty">Interrogo i dispositivi…</p></div><div class="btns"><button class="btn" data-act="diag-reload">Ricontrolla</button></div>'; },
+  sched() {
+    return sheetHead('Orari automatici', 'Avvia uno scenario a un orario') + `<div class="list" id="schList"><p class="empty">Carico…</p></div>
+      <h4 class="sh4">Nuovo orario</h4><div class="form">
+      <select id="schScene">${(S.cfg.scenes || []).map((s) => `<option value="${s.id}">${h(s.name)}</option>`).join('')}</select>
+      <input id="schTime" type="time" value="07:30">
+      <div class="days">${['L', 'M', 'M', 'G', 'V', 'S', 'D'].map((x, i) => `<button class="on" data-day="${i + 1}">${x}</button>`).join('')}</div>
+      <button class="btn primary" data-act="sch-add">Aggiungi orario</button></div>`;
+  },
+  pin() {
+    return sheetHead('Inserisci il PIN', 'Serve una volta sola su questo dispositivo') + `<form class="form" id="pinForm"><input id="pinIn" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN" style="font-size:22px;text-align:center;letter-spacing:.3em"><button class="btn primary">Entra</button></form>`;
+  },
+};
+function openSheet(kind, id) {
+  S.sheet = { kind, id }; renderSheet();
+  $('#scrim').classList.add('open'); $('#sheet').classList.add('open');
+  if (kind === 'diag') loadDiag();
+  if (kind === 'sched') loadSched();
+  if (kind === 'pin') setTimeout(() => $('#pinIn')?.focus(), 250);
+}
+function closeSheet() {
+  S.sheet = null; $('#scrim').classList.remove('open'); $('#sheet').classList.remove('open');
+  if (pinResolve) { pinResolve(null); pinResolve = null; }
+}
+function renderSheet() { if (S.sheet) $('#sheet').innerHTML = '<div class="grab"></div>' + SHEETS[S.sheet.kind](S.sheet.id); }
+function askPin() { return new Promise((res) => { pinResolve = res; openSheet('pin'); }); }
+
+async function loadDiag() {
+  const el = () => $('#diagBody'); if (!el()) return;
+  el().innerHTML = '<p class="empty">Interrogo i dispositivi…</p>';
+  const [v, d] = await Promise.allSettled([api('valves'), api('discover')]);
+  if (!el()) return;
+  const row = (name, sub, tag, ok) => `<div class="row"><span class="grow"><b>${h(name)}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="tag ${ok ? 'ok' : 'bad'}">${h(tag)}</span></div>`;
+  let html = '<h4 class="sh4">Valvole Meross</h4>';
+  if (v.status === 'rejected') html += `<p class="empty">Errore: ${h(v.reason.message)}</p>`;
+  else {
+    const { valves, missing } = v.value;
+    if (missing?.length) html += `<div class="hint" style="background:var(--bad-soft);color:var(--text)">${I('alert')}<span>Non trovate sull’hub: ${h(missing.join(', '))}</span></div>`;
+    html += '<div class="list">' + valves.map((x) => row(x.name, [x.online ? `${fmt(x.current)}° → ${fmt(x.target)}°` : 'non risponde', x.mode != null && x.online ? ({ 0: 'manuale', 4: 'programma Meross' }[x.mode] || 'modo ' + x.mode) : '', x.batteryMv ? `pile ${(x.batteryMv / 1000).toFixed(2)} V` : '', x.duplicate ? '<b style="color:var(--bad)">nome doppio</b>' : '', x.configured ? '' : 'non in configurazione'].filter(Boolean).join(' · '), x.online ? 'online' : 'offline', x.online)).join('') + '</div>';
+  }
+  if (d.status === 'fulfilled') {
+    for (const [k, title] of [['ewelink', 'Sonoff (eWeLink)'], ['tuya', 'Climatizzatori (Tuya)'], ['switchbot', 'SwitchBot']]) {
+      const x = d.value[k] || { devices: [] };
+      html += `<h4 class="sh4">${title}</h4>` + (x.error ? `<p class="empty" style="color:var(--bad)">${h(x.error)}</p>` : x.devices.length ? '<div class="list">' + x.devices.map((y) => row(y.name, `<span style="user-select:text">${h(y.id)}</span>`, y.online ? 'online' : 'offline', y.online)).join('') + '</div>' : '<p class="empty">Nessun dispositivo.</p>');
+    }
+  } else html += `<p class="empty">Errore: ${h(d.reason.message)}</p>`;
+  el().innerHTML = html;
+}
+let schedules = [];
+async function loadSched() {
+  try { schedules = (await api('schedules')) || []; } catch (e) { toast('Errore: ' + e.message); return; }
+  const el = $('#schList'); if (!el) return;
+  const D = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+  el.innerHTML = schedules.length ? schedules.map((s, i) => {
+    const sc = S.cfg.scenes.find((x) => x.id === s.scene);
+    return `<div class="row"><span class="grow"><b class="num">${h(s.time)} · ${h(sc?.name || s.scene)}</b><small>${s.days.length === 7 ? 'Ogni giorno' : s.days.map((d) => D[d - 1]).join(' ')}</small></span><button class="tag bad" data-sch-del="${i}">Elimina</button></div>`;
+  }).join('') : '<p class="empty">Nessun orario impostato.</p>';
+}
+const saveSched = async () => { try { await api('schedules', { method: 'PUT', body: JSON.stringify({ schedules }) }); loadSched(); } catch (e) { toast('Errore: ' + e.message); } };
+
+// ---------------------------------------------------------------- render
+const TABS = [['home', 'home', 'Casa'], ['clima', 'thermo', 'Clima'], ['luci', 'bulb', 'Luci'], ['ingresso', 'lock', 'Ingresso']];
 function render() {
-  if (!cfg) return;
-  const rooms = ['Tutte', ...new Set(cfg.devices.map((d) => d.room))];
-  $('#rooms').innerHTML = rooms.map((r) => `<button class="chip ${r === room ? 'on' : ''}" data-room="${h(r)}">${h(r)}</button>`).join('');
-  $('#modes').innerHTML = (cfg.modes || []).map((m) => `<button class="mode ${m.id === mode ? 'sel' : ''}" data-mode="${m.id}" data-name="${h(m.name)}"><b>${m.icon} ${h(m.name)}</b><span>${h(m.info || '')}</span></button>`).join('');
-  renderHeat();
-  $('#scenes').innerHTML = cfg.scenes.map((s) => `<button class="scene" data-scene="${s.id}" data-name="${h(s.name)}"><span>${s.icon}</span>${h(s.name)}</button>`).join('');
-  $('#grid').innerHTML = cfg.devices.filter((d) => room === 'Tutte' || d.room === room).map(card).join('');
-}
-document.addEventListener('click', (e) => {
-  const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.room) { room = b.dataset.room; render(); }
-  else if (b.dataset.policy) setPolicy(b.dataset.policy);
-  else if (b.dataset.mode) setMode(b.dataset.mode, b.dataset.name);
-  else if (b.dataset.scene) scene(b.dataset.scene, b.dataset.name);
-  else if (b.dataset.id) send(b.dataset.id, JSON.parse(b.dataset.cmd));
-});
-
-// Portone: serve tenere premuto 1,2 s (evita aperture accidentali).
-let holdT;
-document.addEventListener('pointerdown', (e) => {
-  const b = e.target.closest('[data-door]'); if (!b) return;
-  b.style.background = 'var(--hot)';
-  holdT = setTimeout(async () => { try { await api('command', { method: 'POST', body: JSON.stringify({ device: b.dataset.door, command: b.dataset.hold ? JSON.parse(b.dataset.hold) : { open: true } }) }); toast('Aperto 🔓'); refresh(); navigator.vibrate?.(80); } catch (err) { toast('Errore: ' + err.message); } }, 1200);
-});
-['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => document.addEventListener(t, () => { clearTimeout(holdT); document.querySelectorAll('[data-door]').forEach((b) => (b.style.background = '')); }, true));
-
-const DAYN = ['', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
-function renderHeat() {
-  const el = $('#heat'); if (!el) return;
-  if (!heat || !heat.mode) { el.hidden = true; return; }
-  el.hidden = false;
-  const name = (cfg.modes || []).find((m) => m.id === heat.mode)?.name || heat.mode;
-  const bad = heat.devices.filter((d) => d.ok === false).length;
-  const next = heat.next ? ` · prossimo cambio ${heat.next.inMin > 1440 ? DAYN[heat.next.day] + ' ' : ''}${heat.next.at}` : '';
-  el.innerHTML = `<summary>🌡️ ${h(name)}${next}${bad ? ` &nbsp;·&nbsp; <b style="color:var(--bad)">${bad} ${bad === 1 ? 'valvola non raggiunta' : 'valvole non raggiunte'}</b>` : ''}</summary>
-    <div class="row"><span class="mut">Orari valvole:</span>
-      <button class="chip ${heat.policy === 'app' ? 'on' : ''}" data-policy="app">Impostati nell'app</button>
-      <button class="chip ${heat.policy === 'meross' ? 'on' : ''}" data-policy="meross">Programmi dell'app Meross</button></div>
-    ${heat.policy === 'meross' ? '<div class="mut">In inverno le valvole seguono i programmi Meross; "Esco di casa" ed "Estate" li sostituiscono finché non torni a "Casa inverno".</div>' : ''}
-    ${heat.devices.map((d) => `<div class="hl"><span>${h(d.name)}: <b>${h(d.want)}</b></span><span style="color:${d.ok === false ? 'var(--bad)' : 'var(--mut)'}">${d.ok === false ? '✗ ' + h(d.error || 'errore') : d.ok ? '✓' : '…'}</span></div>`).join('')}`;
-}
-async function setPolicy(p) {
-  toast('Applico…');
-  try { const r = await api('policy', { method: 'POST', body: JSON.stringify({ policy: p }) }); const bad = (r || []).filter((x) => x.ok === false); toast(bad.length ? `${bad.length} valvole non raggiunte: ${bad[0].error}` : 'Fatto ✓'); } catch (e) { toast('Errore: ' + e.message); }
-  refresh();
+  if (!S.cfg) return;
+  $('#rail').innerHTML = `<span class="brand">${I('home')}</span>` + TABS.map(([k, ic, n]) => `<button class="tab ${S.view === k ? 'on' : ''}" data-go="${k}">${I(ic)}${n}</button>`).join('')
+    + `<span class="spacer"></span><button class="tab" data-sheet="settings">${I('gear')}Altro</button>`;
+  $('#view').innerHTML = (VIEWS[S.view] || VIEWS.home)();
+  if (S.sheet && LIVE.has(S.sheet.kind)) renderSheet();
 }
 
+// ---------------------------------------------------------------- azioni
+async function send(id, cmd) {
+  const prev = S.st[id];
+  S.st[id] = { ...prev, ...cmd, ...(cmd.target === 'max' ? { target: prev?.target } : {}) };
+  render();
+  try { await api('command', { method: 'POST', body: JSON.stringify({ device: id, command: cmd }) }); }
+  catch (e) { S.st[id] = prev; render(); toast('Errore: ' + e.message); }
+  setTimeout(refresh, 1500);
+}
 async function setMode(id, name) {
-  const prev = mode; mode = id; render(); toast(`${name}…`);
+  const prev = S.heat?.mode; S.heat = { ...(S.heat || {}), mode: id }; render(); toast(`${name}…`);
   try {
     const r = await api('mode', { method: 'POST', body: JSON.stringify({ mode: id }) });
     const bad = (r || []).filter((x) => x.ok === false), wait = (r || []).filter((x) => x.ok === null).length;
-    toast(bad.length ? `${name}: ${bad.length} valvole non raggiunte. ${bad[0].error || ''}` : wait ? `${name} attivo ✓ · ${wait} valvole si aggiornano entro un minuto` : `${name} attivo ✓`); refresh();
-  } catch (e) { mode = prev; render(); toast('Errore: ' + e.message); }
+    toast(bad.length ? `${name}: ${bad.length} ${bad.length === 1 ? 'valvola non raggiunta' : 'valvole non raggiunte'}` : wait ? `${name} attivo · ${wait} valvole entro un minuto` : `${name} attivo`);
+  } catch (e) { S.heat.mode = prev; toast('Errore: ' + e.message); }
+  refresh();
 }
-async function loadValves() {
-  $('#valList').innerHTML = '<p class="mut">Interrogo l\'hub…</p>';
-  try {
-    const { valves, missing } = await api('valves');
-    const batt = (v) => v.batteryMv ? `${(v.batteryMv / 1000).toFixed(2)} V` : '';
-    $('#valList').innerHTML = (missing.length ? `<p><span class="tag bad">Non trovate</span> ${missing.map(h).join(', ')}</p>` : '<p><span class="tag ok">Tutte le valvole configurate sono presenti</span></p>')
-      + valves.map((v) => `<div class="vrow"><span><b>${h(v.name)}</b> ${v.configured ? '' : '<span class="tag">non in configurazione</span>'} ${v.duplicate ? '<span class="tag bad">nome doppio</span>' : ''}<br><span class="mut">${v.online ? `${v.current ?? '--'}° → ${v.target ?? '--'}°` : 'non risponde'}${v.online && v.mode != null ? ' · ' + ({ 0: 'manuale', 4: 'programma Meross' }[v.mode] || 'modo ' + v.mode) : ''} ${batt(v) ? '· pile ' + batt(v) : ''}</span></span><span class="tag ${v.online ? 'ok' : 'bad'}">${v.online ? 'online' : 'offline'}</span></div>`).join('');
-  } catch (e) { $('#valList').innerHTML = `<p class="mut">Errore: ${h(e.message)}</p>`; }
+async function setPolicy(p) {
+  S.heat = { ...(S.heat || {}), policy: p }; render();
+  try { const r = await api('policy', { method: 'POST', body: JSON.stringify({ policy: p }) }); const bad = (r || []).filter((x) => x.ok === false); toast(bad.length ? `${bad.length} valvole non raggiunte` : p === 'meross' ? 'Le valvole seguono i programmi Meross' : 'Orari gestiti dall’app'); }
+  catch (e) { toast('Errore: ' + e.message); }
+  refresh();
 }
-async function loadDevices() {
-  $('#devList').innerHTML = '<h3>Sonoff e condizionatori</h3><p class="mut">Cerco i dispositivi…</p>';
-  try {
-    const r = await api('discover');
-    const sec = (title, x) => `<h3>${title}</h3>` + (x.error ? `<p><span class="tag bad">Errore</span> ${h(x.error)}</p>` : x.devices.map((d) => `<div class="vrow"><span><b>${h(d.name)}</b><br><span class="mut" style="user-select:text">${h(d.id)}</span></span><span class="tag ${d.online ? 'ok' : 'bad'}">${d.online ? 'online' : 'offline'}</span></div>`).join('') || '<p class="mut">Nessun dispositivo.</p>');
-    $('#devList').innerHTML = sec('Sonoff (eWeLink)', r.ewelink) + sec('Climatizzatori (Tuya)', r.tuya) + sec('SwitchBot', r.switchbot || { devices: [] });
-  } catch (e) { $('#devList').innerHTML = `<p class="mut">Errore: ${h(e.message)}</p>`; }
+async function runScene(id, name) {
+  toast(`${name}…`);
+  try { const r = await api('scene', { method: 'POST', body: JSON.stringify({ scene: id }) }); const bad = (r || []).filter((x) => !x.ok).length; toast(bad ? `${name}: ${bad} azioni non riuscite` : `${name} fatto`); }
+  catch (e) { toast('Errore: ' + e.message); }
+  refresh();
 }
-$('#valBtn').onclick = () => { $('#valDlg').showModal(); loadValves(); loadDevices(); };
-$('#valRe').onclick = () => { loadValves(); loadDevices(); }; $('#valClose').onclick = () => $('#valDlg').close();
+async function bulk(kind) {
+  const list = kind === 'lights-off' ? devs('light').filter((d) => S.st[d.id]?.on !== false).map((d) => [d.id, { on: false }]) : devs('shutter').map((d) => [d.id, { action: kind === 'sh-up' ? 'up' : 'down' }]);
+  if (!list.length) return toast(kind === 'lights-off' ? 'Le luci sono già spente' : 'Nessuna tapparella');
+  list.forEach(([id, c]) => { S.st[id] = { ...S.st[id], ...c }; }); render();
+  const r = await Promise.allSettled(list.map(([id, c]) => api('command', { method: 'POST', body: JSON.stringify({ device: id, command: c }) })));
+  const bad = r.filter((x) => x.status === 'rejected');
+  toast(bad.length ? `${bad.length} non riusciti: ${bad[0].reason.message}` : 'Fatto');
+  refresh();
+}
 
-async function refresh() { try { heat = await api('heating'); mode = heat.mode; } catch { try { mode = (await api('mode')).mode; } catch {} } try { st = await api('state'); } catch (e) { toast('Offline: ' + e.message); } render(); }
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('button,[data-close]');
+  if (!b) return;
+  const ds = b.dataset;
+  if ('close' in ds) return closeSheet();
+  if (ds.go) { if (S.sheet) closeSheet(); S.view = ds.go; ls.set('view', ds.go); render(); window.scrollTo({ top: 0 }); return; }
+  if (ds.sheet) return openSheet(ds.sheet, ds.id);
+  if (ds.mode) return setMode(ds.mode, ds.name);
+  if (ds.policy) return setPolicy(ds.policy);
+  if (ds.scene) return runScene(ds.scene, ds.name);
+  if (ds.bulk) return bulk(ds.bulk);
+  if (ds.cmd) return send(ds.id, JSON.parse(ds.cmd));
+  if (ds.themeSet) { ls.set('theme', ds.themeSet === 'auto' ? null : ds.themeSet); if (ds.themeSet === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = ds.themeSet; return renderSheet(); }
+  if (ds.day) return b.classList.toggle('on');
+  if (ds.schDel != null) { schedules.splice(+ds.schDel, 1); return saveSched(); }
+  if (ds.act === 'sch-add') {
+    const days = [...document.querySelectorAll('.days .on')].map((x) => +x.dataset.day);
+    if (!days.length) return toast('Scegli almeno un giorno');
+    schedules.push({ id: Date.now().toString(36), scene: $('#schScene').value, time: $('#schTime').value, days, enabled: true });
+    return saveSched();
+  }
+  if (ds.act === 'diag-reload') return loadDiag();
+  if (ds.act === 'logout') { ls.set('pin', null); closeSheet(); toast('PIN rimosso'); return refresh(); }
+});
+document.addEventListener('submit', (e) => {
+  if (e.target.id !== 'pinForm') return;
+  e.preventDefault();
+  const v = $('#pinIn').value.trim(), r = pinResolve; pinResolve = null;
+  closeSheet(); r?.(v || null);
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && S.sheet) closeSheet(); });
+
+// Apertura con pressione lunga (porta e portone)
+let holdT = null;
+document.addEventListener('pointerdown', (e) => {
+  const b = e.target.closest('[data-hold]'); if (!b) return;
+  holding = true; b.classList.add('holding');
+  holdT = setTimeout(async () => {
+    holdT = null; holding = false; b.classList.remove('holding');
+    try { await api('command', { method: 'POST', body: JSON.stringify({ device: b.dataset.id, command: JSON.parse(b.dataset.hold) }) }); toast('Aperto'); navigator.vibrate?.(60); }
+    catch (err) { toast('Errore: ' + err.message); }
+    refresh();
+  }, 1200);
+});
+['pointerup', 'pointercancel'].forEach((t) => document.addEventListener(t, () => {
+  if (holdT) { clearTimeout(holdT); holdT = null; }
+  holding = false; document.querySelectorAll('.holding').forEach((x) => x.classList.remove('holding'));
+}, true));
+
+// ---------------------------------------------------------------- avvio
+async function refresh() {
+  const [hs, st] = await Promise.allSettled([api('heating'), api('state')]);
+  if (hs.status === 'fulfilled') S.heat = hs.value;
+  if (st.status === 'fulfilled') S.st = st.value; else if (!DEMO) toast('Non riesco a leggere i dispositivi');
+  if (!holding) render();
+}
 async function init() {
-  try { cfg = await api('config'); }
-  catch (e) { if (!DEMO && location.hostname !== 'localhost') { DEMO = true; toast('Backend non raggiungibile: modalità demo'); cfg = demo.cfg; } else { DEMO = true; cfg = demo.cfg; } }
-  if (DEMO) $('#title').textContent = 'Casa · demo';
-  await refresh(); setInterval(refresh, 20000);
+  try { S.cfg = await api('config'); }
+  catch (e) {
+    if (e.message === 'PIN richiesto') return init();
+    DEMO = true; S.cfg = await demoApi('config', {}); toast('Server non raggiungibile: modalità demo');
+  }
+  if (!VIEWS[S.view]) S.view = 'home';
+  render(); await refresh();
+  setInterval(refresh, 20000);
+  setInterval(() => { const c = $('#clock'); if (c) c.textContent = new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }); }, 15000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 }
-setInterval(() => { $('#clock').textContent = new Date().toLocaleString('it-IT', { weekday: 'long', hour: '2-digit', minute: '2-digit' }); }, 1000);
-
-// ---------- Orari ----------
-const DAYS = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
-$('#schDays').innerHTML = DAYS.map((d, i) => `<button class="chip on" data-d="${i + 1}">${d}</button>`).join('');
-$('#schDays').onclick = (e) => e.target.closest('button')?.classList.toggle('on');
-async function loadSch() {
-  schedules = (await api('schedules')) || [];
-  $('#schScene').innerHTML = cfg.scenes.map((s) => `<option value="${s.id}">${s.icon} ${h(s.name)}</option>`).join('');
-  $('#schList').innerHTML = schedules.length ? schedules.map((s, i) => {
-    const sc = cfg.scenes.find((x) => x.id === s.scene);
-    return `<div class="sch"><span><b>${s.time}</b> ${sc ? sc.icon + ' ' + h(sc.name) : '?'} <span class="mut">${s.days.length === 7 ? 'ogni giorno' : s.days.map((d) => DAYS[d - 1]).join(' ')}</span></span><button class="chip" data-del="${i}">Elimina</button></div>`;
-  }).join('') : '<p class="mut">Nessun orario impostato.</p>';
-}
-const saveSch = async () => { await api('schedules', { method: 'PUT', body: JSON.stringify({ schedules }) }); loadSch(); };
-$('#schBtn').onclick = async () => { await loadSch(); $('#schDlg').showModal(); };
-$('#schClose').onclick = () => $('#schDlg').close();
-$('#schList').onclick = (e) => { const i = e.target.dataset.del; if (i != null) { schedules.splice(+i, 1); saveSch(); } };
-$('#schAdd').onclick = () => {
-  const days = [...document.querySelectorAll('#schDays .on')].map((b) => +b.dataset.d);
-  schedules.push({ id: Date.now().toString(36), scene: $('#schScene').value, time: $('#schTime').value, days, enabled: true });
-  saveSch();
-};
 init();
 </script>
 </body>
