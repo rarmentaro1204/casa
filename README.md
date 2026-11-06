@@ -24,6 +24,12 @@ In prima pagina: **Casa inverno**, **Esco di casa**, **Casa estate** (definiti i
 - Il controllo parte ogni minuto, ma i comandi partono solo quando serve cambiare stato: le pile delle valvole durano di più.
 - Fuso orario: Europe/Rome.
 
+## Funzioni smart
+- **Suggerimenti** (pagina Casa): luci o climatizzatore accesi mentre sei fuori, porta aperta di notte, clima e termosifone accesi insieme, stanza lontana dalla temperatura impostata, freddo fuori orario, tramonto con tapparelle su, notte gelida con "Casa estate". Ogni suggerimento ha un'azione con un tocco e si può nascondere per 3 ore.
+- **Scalda ora**: accende la zona giorno (o una sola valvola) a 21° per un'ora, poi tornano gli orari dello scenario. Funziona in qualsiasi scenario.
+- **Siri e automazioni** (Altro → Siri e automazioni): link per l'app Comandi dell'iPhone/iPad, per la voce ("Ehi Siri, esco di casa") o per le automazioni "Quando esco / Quando arrivo". Protetti da un token segreto rigenerabile; non aprono mai porta e portone.
+- **Meteo** (Open-Meteo, senza chiave): temperatura esterna e minima della notte; si attiva con la posizione del dispositivo.
+
 ## Controllo valvole
 Il pulsante **🔧 Valvole** interroga l'hub Meross e mostra nome, online/offline, temperature e tensione pile di ogni MTS150. Segnala le valvole non trovate e i nomi doppi. Le valvole in `devices.json` si cercano per nome (`subName`), non per ID: dopo aver reinserito le pile e riaccoppiato una valvola il nome resta valido.
 

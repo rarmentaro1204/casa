@@ -1,4 +1,5 @@
-import { getMode, setMode, setPolicy, status as heatingStatus } from './lib/heating.mjs';
+import { getMode, setMode, setPolicy, setBoost, cancelBoost, status as heatingStatus } from './lib/heating.mjs';
+import { runHook, hookToken, ACTIONS } from './lib/hook.mjs';
 import { listValves } from './lib/meross.mjs';
 import * as ewelink from './lib/ewelink.mjs';
 import * as tuya from './lib/tuya.mjs';
@@ -8,6 +9,9 @@ import { config as cfg, state, command, runScene, getSchedules, setSchedules } f
 const json = (data, status = 200) => Response.json(data, { status });
 
 export default async (req) => {
+  // Siri / Comandi rapidi: protetti dal loro token, non dal PIN.
+  if (new URL(req.url).pathname === '/api/hook') return runHook(req);
+
   // PIN semplice: imposta APP_PIN nelle variabili d'ambiente di Netlify.
   const pin = process.env.APP_PIN;
   if (pin && req.headers.get('x-pin') !== pin) return json({ error: 'PIN errato' }, 401);
@@ -26,6 +30,11 @@ export default async (req) => {
     }
     if (path === 'mode' && req.method === 'GET') return json({ mode: await getMode() });
     if (path === 'heating') return json(await heatingStatus());
+    if (path === 'boost') return json(body.cancel ? await cancelBoost() : await setBoost(body));
+    if (path === 'hook-info') {
+      const token = await hookToken(body.rotate === true);
+      return json({ base: `${new URL(req.url).origin}/api/hook`, token, actions: Object.entries(ACTIONS).map(([id, [name]]) => ({ id, name })) });
+    }
     if (path === 'policy') return json(await setPolicy(body.policy));
     if (path === 'mode') return json(await setMode(body.mode));
     if (path === 'discover') {

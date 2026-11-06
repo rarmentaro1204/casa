@@ -222,6 +222,21 @@ main{width:100%;max-width:1240px;padding:calc(22px + env(safe-area-inset-top)) c
 .days button.on{background:var(--accent);color:var(--accent-ink)}
 h4.sh4{margin:22px 0 8px;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 
+/* Suggerimenti, meteo, scalda ora */
+.btn.sm{min-height:40px;padding:0 14px;font-size:14px;border-radius:12px}
+.hs{position:relative}.hs .act{margin-left:auto;flex:none}
+.tl .boost{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,var(--accent) 0 6px,color-mix(in srgb,var(--accent) 60%,transparent) 6px 12px);border-radius:6px}
+.sugs{display:flex;flex-direction:column;gap:8px}
+.sug{display:flex;align-items:center;flex-wrap:wrap;gap:10px 12px;padding:12px 14px;border-radius:18px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.sug .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none}
+.sug .grow{flex:1 1 200px;min-width:0}.sug b{display:block;font-size:15px}.sug small{display:block;color:var(--muted);font-size:13px;margin-top:1px}
+.sug .end{display:flex;gap:6px;align-items:center;margin-left:auto}
+.x.sm{width:32px;height:32px}
+.wx{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-size:14px;font-weight:600;white-space:nowrap}
+.wx svg.i{width:20px;height:20px;color:var(--accent)}
+.wx small{color:var(--muted);font-weight:500}
+.urlbox{font-size:12px;color:var(--muted);word-break:break-all;user-select:text;-webkit-user-select:text}
+ol.steps{margin:6px 0 0;padding-left:20px;color:var(--muted);font-size:14px}ol.steps li{margin:4px 0}ol.steps b{color:var(--text)}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,120px);max-width:min(92vw,520px);background:var(--text);color:var(--bg);padding:13px 20px;border-radius:16px;font-weight:600;font-size:15px;transition:transform .25s;z-index:60;text-align:center}
 #toast.show{transform:translate(-50%,0)}
 #toast:not(.show){visibility:hidden;transition:transform .25s,visibility 0s .3s}
@@ -275,6 +290,14 @@ const P = {
   key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/>',
   palette: '<circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18" fill="currentColor" stroke="none"/>',
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  cloud: '<path d="M17.5 19H8a5 5 0 1 1 1-9.9A6 6 0 0 1 20.5 12 3.5 3.5 0 0 1 17.5 19Z"/>',
+  rain: '<path d="M17.5 15H8a5 5 0 1 1 1-9.9A6 6 0 0 1 20.5 8 3.5 3.5 0 0 1 17.5 15Z"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/>',
+  storm: '<path d="M17.5 15H8a5 5 0 1 1 1-9.9A6 6 0 0 1 20.5 8 3.5 3.5 0 0 1 17.5 15Z"/><path d="m12 15-2 4h4l-2 4"/>',
+  zap: '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/>',
+  spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/><path d="M19 3v4M17 5h4"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/>',
+  pin: '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/>',
 };
 const I = (n, c = '') => `<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ''}</svg>`;
 
@@ -287,7 +310,7 @@ const DAYN = ['', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', '
 // ---------------------------------------------------------------- stato
 const qs = new URLSearchParams(location.search);
 let DEMO = qs.has('demo');
-const S = { cfg: null, st: {}, heat: null, view: ls.get('view') || 'home', sheet: null };
+const S = { cfg: null, st: {}, heat: null, weather: null, view: ls.get('view') || 'home', sheet: null };
 let holding = false, pinResolve = null;
 const theme = ls.get('theme'); if (theme) document.documentElement.dataset.theme = theme;
 
@@ -295,6 +318,9 @@ const devs = (type) => (S.cfg?.devices || []).filter((d) => d.type === type);
 const byId = (id) => (S.cfg?.devices || []).find((d) => d.id === id);
 const label = (d) => d?.label || d?.name || '';
 const heatFor = (id) => (S.heat?.devices || []).find((x) => x.id === id);
+const boostOn = () => !!(S.heat?.boost && S.heat.boost.until > Date.now());
+const clockOf = (ts) => new Date(ts).toLocaleTimeString('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' });
+const acts = (list) => `data-acts='${JSON.stringify(list)}'`;
 
 // ---------------------------------------------------------------- tempo
 function romeNow(d = new Date()) {
@@ -345,14 +371,14 @@ const demo = (() => {
   const caps = { modes: ['cool', 'heat', 'auto', 'dry', 'wind'], fans: ['auto', 'mute', 'low', 'mid', 'high'], swing: true, extras: ['eco', 'sleep'], temp: { min: 16, max: 30, step: 1 } };
   const st = {
     vs: { current: 19.6, target: 21, on: true, heating: true, online: true, batteryMv: 2950 }, vss: { current: 20.8, target: 21, on: true, online: true },
-    vc: { current: 18.9, target: 21, on: true, online: true }, vcm: { current: 19.9, target: 21, on: true, heating: true, online: true },
+    vc: { current: 17.8, target: 21, on: true, online: true }, vcm: { current: 19.9, target: 21, on: true, heating: true, online: true },
     vct: { current: 16.2, target: 15, on: true, online: true }, vbf: { current: 15.4, target: 15, on: true, online: true }, vbi: { current: 23.1, target: 35, on: true, heating: true, online: true },
     a1: { on: false, target: 24, current: 22, mode: 'heat', fan: 'auto', swing: false, extras: { eco: false, sleep: false }, caps, online: true },
     a2: { on: true, target: 22, current: 21, mode: 'heat', fan: 'mute', caps: { ...caps, swing: false, extras: [] }, online: true },
     l1: { on: true, online: true }, l2: { on: false, online: true }, l3: { on: false, online: true }, l4: { on: false, online: true },
     k1: { locked: true, battery: 76, online: true },
   };
-  return { cfg, st, mode: 'inverno', policy: 'app', sch: [{ id: 'x', scene: 'buongiorno', time: '07:00', days: [1, 2, 3, 4, 5], enabled: true }] };
+  return { cfg, st, mode: 'inverno', policy: 'app', boost: null, sch: [{ id: 'x', scene: 'buongiorno', time: '07:00', days: [1, 2, 3, 4, 5], enabled: true }] };
 })();
 function demoHeat() {
   const H = demo.cfg.heating, now = romeNow(), on = demo.mode === 'inverno' && demo.policy === 'app' && slotsFor(now.day).some(([a, b]) => now.hhmm >= a && now.hhmm < b);
@@ -363,7 +389,9 @@ function demoHeat() {
     const m = toMin(now.hhmm), cut = slotsFor(now.day).flat().map(toMin).find((x) => x > m);
     next = cut != null ? { at: `${String(Math.floor(cut / 60)).padStart(2, '0')}:${String(cut % 60).padStart(2, '0')}`, day: now.day, inMin: cut - m } : { at: slotsFor(now.day % 7 + 1)[0][0], day: now.day % 7 + 1, inMin: 1440 - m + toMin(slotsFor(now.day % 7 + 1)[0][0]) };
   }
-  return { mode: demo.mode, policy: demo.policy, next, devices: ids.map((id) => ({ id, name: demo.cfg.devices.find((d) => d.id === id).label, want: want(id), ok: id === 'vc' ? false : true, error: id === 'vc' ? 'Meross: timeout (hub spento o offline?)' : undefined })) };
+  const b = demo.boost && demo.boost.until > Date.now() ? demo.boost : null;
+  if (b) next = { at: clockOf(b.until), day: now.day, inMin: Math.round((b.until - Date.now()) / 60e3) };
+  return { mode: demo.mode, policy: demo.policy, boost: b, next, devices: ids.map((id) => ({ id, name: demo.cfg.devices.find((d) => d.id === id).label, want: b?.ids.includes(id) ? `${b.temp}°` : want(id), boost: !!b?.ids.includes(id), ok: id === 'vc' ? false : true, error: id === 'vc' ? 'Meross: timeout (hub spento o offline?)' : undefined })) };
 }
 async function demoApi(path, opts) {
   await new Promise((r) => setTimeout(r, 120));
@@ -373,12 +401,80 @@ async function demoApi(path, opts) {
   if (path === 'heating') return demoHeat();
   if (path === 'mode') { if (opts.method === 'POST') { demo.mode = body.mode; return []; } return { mode: demo.mode }; }
   if (path === 'policy') { demo.policy = body.policy; return []; }
+  if (path === 'boost') { demo.boost = body.cancel ? null : { ids: body.ids === 'zona' ? demo.cfg.heating.group : body.ids, temp: body.temp || 21, until: Date.now() + (body.minutes || 60) * 60e3 }; (demo.boost?.ids || []).forEach((id) => { demo.st[id] = { ...demo.st[id], on: true, target: 21, heating: true }; }); return []; }
+  if (path === 'hook-info') return { base: location.origin + '/api/hook', token: 'esempio-token', actions: [['inverno', 'Casa inverno'], ['fuori', 'Esco di casa'], ['estate', 'Casa estate'], ['scalda', "Scalda la zona giorno per un'ora"], ['luci-off', 'Spegni tutte le luci'], ['tapparelle-giu', 'Abbassa le tapparelle'], ['tapparelle-su', 'Alza le tapparelle'], ['buonanotte', 'Buonanotte']].map(([id, name]) => ({ id, name })) };
   if (path === 'command') { const s = demo.st[body.device] || {}; demo.st[body.device] = { ...s, ...body.command, extras: { ...(s.extras || {}), ...Object.fromEntries(Object.entries(body.command).filter(([k]) => EXTRA[k])) } }; return { ok: true }; }
   if (path === 'scene') return [];
   if (path === 'schedules') { if (opts.method === 'PUT') demo.sch = body.schedules; return demo.sch; }
   if (path === 'valves') return { missing: [], valves: demo.cfg.heating.group.concat(demo.cfg.heating.base, demo.cfg.heating.always).map((id) => { const s = demo.st[id]; return { id, name: demo.cfg.devices.find((d) => d.id === id).label, online: true, configured: true, duplicate: false, current: s.current, target: s.target, batteryMv: 2900, mode: 0 }; }) };
   if (path === 'discover') return { ewelink: { error: 'Mancano su Netlify le variabili: EWELINK_APPID, EWELINK_SECRET' }, tuya: { devices: [{ id: '0330…', name: 'Air conditioner 2', online: true }, { id: '0252…', name: 'Air conditioner', online: true }] }, switchbot: { devices: [] } };
   return {};
+}
+
+// ---------------------------------------------------------------- meteo (Open-Meteo, nessuna chiave)
+const WX = (c) => (c === 0 ? ['sun', 'Sereno'] : c <= 2 ? ['sun', 'Poco nuvoloso'] : c === 3 ? ['cloud', 'Nuvoloso'] : c <= 48 ? ['cloud', 'Nebbia'] : c <= 67 || (c >= 80 && c <= 82) ? ['rain', 'Pioggia'] : c <= 77 || c === 85 || c === 86 ? ['snow', 'Neve'] : c >= 95 ? ['storm', 'Temporale'] : ['cloud', '']);
+async function loadWeather() {
+  if (DEMO) { const t = new Date(); t.setHours(16, 55, 0, 0); S.weather = { temp: 6.4, code: 2, maxToday: 12, minTonight: 2.1, sunset: t.getTime(), sunsetLabel: '16:55' }; return; }
+  let g; try { g = JSON.parse(ls.get('geo') || 'null'); } catch { g = null; }
+  if (!g) { S.weather = null; return; }
+  try {
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${g.lat}&longitude=${g.lon}&current=temperature_2m,weather_code&hourly=temperature_2m&daily=temperature_2m_max,sunset&timezone=Europe%2FRome&forecast_days=2`).then((x) => x.json());
+    const from = r.current.time.slice(0, 13), to = `${r.daily.time[1]}T08`;
+    const night = r.hourly.time.map((t, i) => [t.slice(0, 13), r.hourly.temperature_2m[i]]).filter(([t]) => t >= from && t <= to).map(([, v]) => v);
+    S.weather = { temp: r.current.temperature_2m, code: r.current.weather_code, maxToday: r.daily.temperature_2m_max[0], minTonight: night.length ? Math.min(...night) : null, sunset: Date.parse(r.daily.sunset[0]), sunsetLabel: r.daily.sunset[0].slice(11, 16) };
+  } catch { /* meteo non disponibile: l'app funziona lo stesso */ }
+}
+function askLocation() {
+  if (!navigator.geolocation) return toast('Posizione non disponibile su questo dispositivo');
+  toast('Cerco la posizione…');
+  navigator.geolocation.getCurrentPosition(async (p) => {
+    ls.set('geo', JSON.stringify({ lat: +p.coords.latitude.toFixed(2), lon: +p.coords.longitude.toFixed(2) }));
+    await loadWeather(); render(); toast(S.weather ? 'Meteo attivo' : 'Meteo non raggiungibile');
+  }, (e) => toast('Posizione negata: ' + e.message), { timeout: 15000, maximumAge: 864e5 });
+}
+function weatherChip() {
+  const W = S.weather;
+  if (!W) return `<button class="wx" data-act="geo">${I('pin')}Attiva meteo</button>`;
+  const [ic, txt] = WX(W.code);
+  return `<button class="wx" data-act="wx" title="${h(txt)}">${I(ic)}<span class="num">${fmt(W.temp, 0)}°</span>${W.minTonight != null ? `<small class="num">min ${fmt(W.minTonight, 0)}°</small>` : ''}</button>`;
+}
+
+// ---------------------------------------------------------------- suggerimenti
+function dismissed() { try { const m = JSON.parse(ls.get('dismiss') || '{}'); return Object.fromEntries(Object.entries(m).filter(([, t]) => t > Date.now())); } catch { return {}; } }
+function suggestions() {
+  const out = [], now = romeNow(), hr = +now.hhmm.slice(0, 2), mode = S.heat?.mode, H = S.cfg.heating || {}, W = S.weather;
+  const lightsOn = devs('light').filter((d) => S.st[d.id]?.on), acsOn = devs('ac').filter((d) => S.st[d.id]?.on);
+  const nL = lightsOn.length, offL = acts(lightsOn.map((d) => [d.id, { on: false }]));
+  if (mode === 'fuori' && nL) out.push({ id: 'away-lights', icon: 'bulb', t: `Sei fuori casa e ${nL === 1 ? 'c’è una luce accesa' : `ci sono ${nL} luci accese`}`, a: ['Spegni', offL] });
+  if (mode === 'fuori' && acsOn.length) out.push({ id: 'away-ac', icon: 'snow', t: `Sei fuori casa e il climatizzatore ${acsOn.map((d) => d.room.toLowerCase()).join(' e ')} è acceso`, a: ['Spegni', acts(acsOn.map((d) => [d.id, { on: false }]))] });
+  for (const d of devs('lock')) if (S.st[d.id]?.locked === false && (mode === 'fuori' || hr >= 22 || hr < 6)) out.push({ id: 'lock-' + d.id, icon: 'unlock', t: mode === 'fuori' ? 'Sei uscito e la porta è aperta' : 'È tardi e la porta è aperta', a: ['Chiudi', acts([[d.id, { locked: true }]])] });
+  if ((hr >= 23 || hr < 5) && nL && mode !== 'fuori') out.push({ id: 'late-lights', icon: 'moon', t: `È tardi: ${nL === 1 ? 'una luce è ancora accesa' : `${nL} luci sono ancora accese`}`, a: ['Spegni', offL] });
+  for (const ac of acsOn) {
+    const v = devs('thermostat').find((x) => x.room === ac.room && vstat(x).k === 'heat');
+    if (v && ['heat', 'hot'].includes(S.st[ac.id]?.mode)) out.push({ id: 'double-' + ac.id, icon: 'leaf', t: `In ${ac.room.toLowerCase()} scaldano sia il climatizzatore sia il termosifone`, d: 'Per risparmiare puoi spegnere il climatizzatore.', a: ['Spegni clima', acts([[ac.id, { on: false }]])] });
+  }
+  if (mode === 'inverno' && S.heat?.policy === 'app' && !boostOn() && !inSlot() && hr >= 6 && hr < 23) {
+    const cold = (H.group || []).map(byId).filter((d) => d && S.st[d.id]?.current != null && S.st[d.id].current < (H.temp ?? 21) - 2.5);
+    if (cold.length) out.push({ id: 'boost', icon: 'zap', t: `Fa freddo: ${cold.slice(0, 2).map((d) => `${label(d)} ${fmt(S.st[d.id].current)}°`).join(', ')}`, d: S.heat?.next ? `Il riscaldamento parte ${whenLabel(S.heat.next)}. Vuoi scaldare subito?` : 'Vuoi scaldare subito?', a: ['Scalda 1 ora', 'data-boost="zona"'] });
+  }
+  for (const d of devs('thermostat')) {
+    const s = S.st[d.id] || {};
+    if (s.on && s.meMode !== 4 && typeof s.target === 'number' && s.current != null && s.target - s.current >= 3 && !(H.always || []).includes(d.id)) out.push({ id: 'far-' + d.id, icon: 'thermo', t: `${label(d)} è a ${fmt(s.current)}°, lontana dai ${fmt(s.target)}° impostati`, d: 'Una finestra aperta? Se resta così controlla la valvola.', a: ['Dettagli', `data-sheet="valve" data-id="${h(d.id)}"`] });
+  }
+  if (W) {
+    if (mode === 'estate' && W.minTonight != null && W.minTonight <= 3) out.push({ id: 'frost', icon: 'snow', t: `Stanotte fuori ${fmt(W.minTonight, 0)}°`, d: 'Il riscaldamento è spento (Casa estate).', a: ['Casa inverno', 'data-mode="inverno" data-name="Casa inverno"'] });
+    if (mode === 'inverno' && W.maxToday != null && W.maxToday >= 24) out.push({ id: 'warm', icon: 'sun', t: `Oggi fuori fino a ${fmt(W.maxToday, 0)}°`, d: 'Forse il riscaldamento non serve.', a: ['Casa estate', 'data-mode="estate" data-name="Casa estate"'] });
+    const sh = devs('shutter');
+    if (sh.length && W.sunset && Date.now() > W.sunset && hr < 23 && sh.some((d) => S.st[d.id]?.action !== 'down')) out.push({ id: 'dusk', icon: 'moon', t: `Il sole è tramontato alle ${W.sunsetLabel}`, d: 'Vuoi abbassare le tapparelle?', a: ['Abbassa', 'data-bulk="sh-down"'] });
+  }
+  const hidden = dismissed();
+  return out.filter((x) => !hidden[x.id]);
+}
+function suggestionsHTML() {
+  const list = suggestions().slice(0, 4);
+  if (!list.length) return '';
+  return sec('Suggerimenti') + `<div class="sugs">${list.map((x) => `<div class="sug"><span class="ic">${I(x.icon)}</span><div class="grow"><b>${h(x.t)}</b>${x.d ? `<small>${h(x.d)}</small>` : ''}</div>
+    <span class="end"><button class="btn sm on" ${x.a[1]}>${h(x.a[0])}</button><button class="x sm" data-dismiss="${h(x.id)}" aria-label="Nascondi">${I('x')}</button></span></div>`).join('')}</div>`;
 }
 
 // ---------------------------------------------------------------- stati derivati
@@ -394,6 +490,11 @@ function vstat(d) {
 }
 function heatSummary() {
   const hs = S.heat, m = hs?.mode;
+  if (boostOn()) {
+    const b = hs.boost, G = S.cfg.heating?.group || [];
+    const who = b.ids.length === G.length && b.ids.every((x) => G.includes(x)) ? 'Zona giorno' : b.ids.map((id) => label(byId(id))).join(', ');
+    return { ic: '', icon: 'zap', title: `${who} a ${fmt(b.temp)}°`, sub: `Scalda ora fino alle ${clockOf(b.until)}, poi tornano gli orari normali`, boost: true };
+  }
   if (!m) return { ic: 'off', icon: 'thermo', title: 'Riscaldamento non attivo', sub: 'Scegli uno scenario per avviarlo' };
   if (m === 'estate') return { ic: 'off', icon: 'sun', title: 'Riscaldamento spento', sub: 'Solo il bagno ingresso resta al massimo' };
   if (m === 'fuori') return { ic: '', icon: 'leave', title: `Tutte le valvole a ${S.cfg.heating?.awayTemp ?? 15}°`, sub: 'Fino a quando torni a «Casa inverno»' };
@@ -404,7 +505,10 @@ function heatSummary() {
 }
 function timeline() {
   const now = romeNow(), slots = slotsFor(now.day), pct = (m) => (m / 1440) * 100;
-  return `<div class="tl">${slots.map(([a, b]) => `<div class="slot" style="left:${pct(toMin(a))}%;width:${pct(toMin(b) - toMin(a))}%"></div>`).join('')}<div class="now" style="left:${pct(toMin(now.hhmm))}%"></div></div>
+  const showSlots = S.heat?.mode === 'inverno' && S.heat?.policy === 'app';
+  let boost = '';
+  if (boostOn()) { const a = toMin(now.hhmm), b = Math.min(1440, a + Math.round((S.heat.boost.until - Date.now()) / 60e3)); boost = `<div class="boost" style="left:${pct(a)}%;width:${pct(b - a)}%"></div>`; }
+  return `<div class="tl">${showSlots ? slots.map(([a, b]) => `<div class="slot" style="left:${pct(toMin(a))}%;width:${pct(toMin(b) - toMin(a))}%"></div>`).join('') : ''}${boost}<div class="now" style="left:${pct(toMin(now.hhmm))}%"></div></div>
     <div class="tlx num"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>`;
 }
 function alerts() {
@@ -436,7 +540,9 @@ function modesHTML() {
 }
 function heatCard(full) {
   const x = heatSummary(), showTl = S.heat?.mode === 'inverno' && S.heat?.policy === 'app';
-  return `<div class="hs"><span class="ic ${x.ic}">${I(x.icon)}</span><div><b>${h(x.title)}</b><div class="muted">${h(x.sub)}</div></div></div>${showTl ? timeline() : ''}
+  const act = x.boost ? `<button class="btn sm act" data-boost-cancel>Annulla</button>`
+    : S.heat?.mode && S.heat.mode !== 'estate' && !(showTl && inSlot()) ? `<button class="btn sm act" data-boost="zona">${I('zap')}Scalda 1 ora</button>` : '';
+  return `<div class="hs"><span class="ic ${x.ic}">${I(x.icon)}</span><div><b>${h(x.title)}</b><div class="muted">${h(x.sub)}</div></div>${act}</div>${showTl || boostOn() ? timeline() : ''}
     ${full ? '' : alertsHTML()}`;
 }
 function alertsHTML() {
@@ -459,14 +565,17 @@ const VIEWS = {
   home() {
     const valves = devs('thermostat'), lightsOn = devs('light').filter((d) => S.st[d.id]?.on).length;
     const quick = [
+      boostOn() ? `<button class="qa" data-boost-cancel><span class="ic">${I('zap')}</span>Annulla «Scalda ora»</button>`
+        : S.heat?.mode && S.heat.mode !== 'estate' ? `<button class="qa" data-boost="zona"><span class="ic">${I('zap')}</span>Scalda 1 ora</button>` : '',
       ...(S.cfg.scenes || []).map((s) => `<button class="qa" data-scene="${s.id}" data-name="${h(s.name)}"><span class="ic">${I(s.id === 'buonanotte' ? 'moon' : 'sun')}</span>${h(s.name)}</button>`),
       devs('light').length ? `<button class="qa" data-bulk="lights-off"><span class="ic">${I('bulb')}</span>Spegni le luci</button>` : '',
       devs('shutter').length ? `<button class="qa" data-bulk="sh-down"><span class="ic">${I('down')}</span>Abbassa tapparelle</button><button class="qa" data-bulk="sh-up"><span class="ic">${I('up')}</span>Alza tapparelle</button>` : '',
     ].join('');
     const lock = devs('lock')[0], ls_ = lock ? S.st[lock.id] || {} : null;
-    return head(greeting(), dateLine(), lightsOn ? `<span class="tag">${lightsOn} ${lightsOn === 1 ? 'luce accesa' : 'luci accese'}</span>` : '')
+    return head(greeting(), dateLine() + (lightsOn ? ` · ${lightsOn} ${lightsOn === 1 ? 'luce accesa' : 'luci accese'}` : ''), weatherChip())
       + modesHTML()
       + `<div class="card" style="margin-top:14px">${heatCard(false)}</div>`
+      + suggestionsHTML()
       + sec('Temperature', go('clima', 'Clima'))
       + `<div class="temps">${valves.map(tempTile).join('')}</div>`
       + sec('Azioni rapide') + `<div class="quick">${quick}</div>`
@@ -573,6 +682,7 @@ const SHEETS = {
       + `<div class="bigtemp"><div class="t num">${fmt(s.current)}°</div><small>temperatura nella stanza</small></div>`
       + `<div class="stepper"><button aria-label="Meno" ${set(t - 0.5)}>${I('minus')}</button><div class="v num" style="font-size:40px">${s.target != null ? fmt(s.target) + '°' : '--'}<small>impostata</small></div><button aria-label="Più" ${set(t + 0.5)}>${I('plus')}</button></div>`
       + `<div class="btns"><button class="btn ${s.on ? 'on' : ''}" ${cmdAttr(id, { on: !s.on })}>${I('power')}${s.on ? 'Accesa' : 'Spenta'}</button><button class="btn" ${cmdAttr(id, { on: true, target: 'max' })}>${I('flame')}Al massimo</button></div>`
+      + `<div class="btns" style="margin-top:10px">${x?.boost && boostOn() ? `<button class="btn" data-boost-cancel>${I('zap')}Annulla «Scalda ora» (fino alle ${clockOf(S.heat.boost.until)})</button>` : `<button class="btn" data-boost='${JSON.stringify([id])}'>${I('zap')}Scalda a ${S.cfg.heating?.temp ?? 21}° per 1 ora</button>`}</div>`
       + (x?.ok === false ? `<div class="hint" style="background:var(--bad-soft);color:var(--text)">${I('alert')}<span>Ultimo comando non arrivato: ${h(x.error || '')}</span></div>` : '')
       + `<div class="hint">${I('info')}<span>${h(hint)}${s.batteryMv ? ` Pile ${(s.batteryMv / 1000).toLocaleString('it-IT', { maximumFractionDigits: 2 })} V.` : ''}</span></div>`;
   },
@@ -581,6 +691,8 @@ const SHEETS = {
     const th = ls.get('theme') || 'auto';
     return sheetHead('Impostazioni') + `<div class="list">
       <button class="row" data-sheet="sched">${I('clock')}<span class="grow"><b>Orari automatici</b><small>Avvia «Buongiorno» o «Buonanotte» a un orario</small></span>${I('right')}</button>
+      <button class="row" data-sheet="siri">${I('mic')}<span class="grow"><b>Siri e automazioni</b><small>«Ehi Siri, esco di casa» e scenari automatici quando esci o rientri</small></span>${I('right')}</button>
+      <button class="row" data-act="geo">${I('pin')}<span class="grow"><b>Meteo</b><small>${S.weather ? 'Attivo · tocca per aggiornare la posizione' : 'Usa la posizione di questo dispositivo'}</small></span>${I('right')}</button>
       <button class="row" data-sheet="diag">${I('wrench')}<span class="grow"><b>Diagnostica</b><small>Valvole, Sonoff, condizionatori e SwitchBot trovati</small></span>${I('right')}</button>
       <div class="row">${I('palette')}<span class="grow"><b>Aspetto</b></span><span class="seg" style="flex:none">${[['auto', 'Auto'], ['light', 'Chiaro'], ['dark', 'Scuro']].map(([k, n]) => `<button class="${th === k ? 'on' : ''}" data-theme-set="${k}">${n}</button>`).join('')}</span></div>
       ${DEMO ? '' : `<button class="row" data-act="logout">${I('key')}<span class="grow"><b>Cambia PIN</b><small>Il PIN verrà richiesto di nuovo</small></span></button>`}
@@ -595,6 +707,7 @@ const SHEETS = {
       <div class="days">${['L', 'M', 'M', 'G', 'V', 'S', 'D'].map((x, i) => `<button class="on" data-day="${i + 1}">${x}</button>`).join('')}</div>
       <button class="btn primary" data-act="sch-add">Aggiungi orario</button></div>`;
   },
+  siri() { return sheetHead('Siri e automazioni', 'Comanda la casa con la voce o in automatico') + '<div id="siriBody"><p class="empty">Carico…</p></div>'; },
   pin() {
     return sheetHead('Inserisci il PIN', 'Serve una volta sola su questo dispositivo') + `<form class="form" id="pinForm"><input id="pinIn" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN" style="font-size:22px;text-align:center;letter-spacing:.3em"><button class="btn primary">Entra</button></form>`;
   },
@@ -604,6 +717,7 @@ function openSheet(kind, id) {
   $('#scrim').classList.add('open'); $('#sheet').classList.add('open');
   if (kind === 'diag') loadDiag();
   if (kind === 'sched') loadSched();
+  if (kind === 'siri') loadSiri();
   if (kind === 'pin') setTimeout(() => $('#pinIn')?.focus(), 250);
 }
 function closeSheet() {
@@ -633,6 +747,17 @@ async function loadDiag() {
     }
   } else html += `<p class="empty">Errore: ${h(d.reason.message)}</p>`;
   el().innerHTML = html;
+}
+async function loadSiri(rotate = false) {
+  let r; try { r = await api('hook-info', { method: 'POST', body: JSON.stringify({ rotate }) }); } catch (e) { const el = $('#siriBody'); if (el) el.innerHTML = `<p class="empty">Errore: ${h(e.message)}</p>`; return; }
+  const el = $('#siriBody'); if (!el) return;
+  const url = (a) => `${r.base}?t=${encodeURIComponent(r.token)}&do=${a}`;
+  el.innerHTML = `<div class="hint" style="margin-top:0">${I('info')}<span>Ogni azione ha un link. Lo incolli nell’app <b>Comandi</b> dell’iPhone o dell’iPad. Porta e portone non sono mai inclusi.</span></div>
+    <h4 class="sh4">Per la voce</h4><ol class="steps"><li>Apri <b>Comandi</b> → <b>+</b> → aggiungi l’azione <b>Ottieni contenuto dell’URL</b> e incolla il link.</li><li>Aggiungi <b>Pronuncia testo</b>: Siri ti dirà com’è andata.</li><li>Dai al comando il nome da pronunciare, es. «Esco di casa», e di’ <b>«Ehi Siri, esco di casa»</b>.</li></ol>
+    <h4 class="sh4">In automatico</h4><ol class="steps"><li><b>Comandi</b> → <b>Automazione</b> → <b>+</b> → <b>Quando esco</b> (scegli casa) → <b>Esegui subito</b>.</li><li>Azione <b>Ottieni contenuto dell’URL</b> con il link di «Esco di casa».</li><li>Ripeti con <b>Quando arrivo</b> e il link di «Casa inverno».</li></ol>
+    <h4 class="sh4">Azioni</h4><div class="list">${r.actions.map((a) => `<div class="row"><span class="grow"><b>${h(a.name)}</b><small class="urlbox">${h(url(a.id))}</small></span><button class="btn sm" data-copy="${h(url(a.id))}">${I('copy')}Copia</button></div>`).join('')}</div>
+    <div class="hint">${I('alert')}<span>Chi ha questi link può comandare luci, tapparelle e riscaldamento. Non condividerli. Se pensi che siano finiti in mani sbagliate, genera link nuovi: quelli vecchi smettono di funzionare.</span></div>
+    <div class="btns"><button class="btn" data-act="siri-rotate">Genera link nuovi</button></div>`;
 }
 let schedules = [];
 async function loadSched() {
@@ -686,9 +811,22 @@ async function runScene(id, name) {
   catch (e) { toast('Errore: ' + e.message); }
   refresh();
 }
+async function setBoost(ids) {
+  toast('Scaldo…');
+  try { const r = await api('boost', { method: 'POST', body: JSON.stringify({ ids, minutes: 60 }) }); const bad = (r || []).filter((x) => x.ok === false).length; toast(bad ? `${bad} valvole non raggiunte` : `Scaldo a ${S.cfg.heating?.temp ?? 21}° per un’ora`); }
+  catch (e) { toast('Errore: ' + e.message); }
+  refresh();
+}
+async function cancelBoost() {
+  try { await api('boost', { method: 'POST', body: JSON.stringify({ cancel: true }) }); toast('Tornano gli orari normali'); } catch (e) { toast('Errore: ' + e.message); }
+  refresh();
+}
 async function bulk(kind) {
   const list = kind === 'lights-off' ? devs('light').filter((d) => S.st[d.id]?.on !== false).map((d) => [d.id, { on: false }]) : devs('shutter').map((d) => [d.id, { action: kind === 'sh-up' ? 'up' : 'down' }]);
   if (!list.length) return toast(kind === 'lights-off' ? 'Le luci sono già spente' : 'Nessuna tapparella');
+  return sendMany(list);
+}
+async function sendMany(list) {
   list.forEach(([id, c]) => { S.st[id] = { ...S.st[id], ...c }; }); render();
   const r = await Promise.allSettled(list.map(([id, c]) => api('command', { method: 'POST', body: JSON.stringify({ device: id, command: c }) })));
   const bad = r.filter((x) => x.status === 'rejected');
@@ -707,6 +845,14 @@ document.addEventListener('click', (e) => {
   if (ds.policy) return setPolicy(ds.policy);
   if (ds.scene) return runScene(ds.scene, ds.name);
   if (ds.bulk) return bulk(ds.bulk);
+  if (ds.acts) return sendMany(JSON.parse(ds.acts));
+  if (ds.boost) return setBoost(ds.boost === 'zona' ? 'zona' : JSON.parse(ds.boost));
+  if ('boostCancel' in ds) return cancelBoost();
+  if (ds.dismiss) { const m = dismissed(); m[ds.dismiss] = Date.now() + 3 * 3600e3; ls.set('dismiss', JSON.stringify(m)); return render(); }
+  if (ds.copy) { (navigator.clipboard?.writeText(ds.copy) || Promise.reject()).then(() => toast('Link copiato'), () => toast('Tieni premuto sul link per copiarlo')); return; }
+  if (ds.act === 'geo') return askLocation();
+  if (ds.act === 'wx' && S.weather) { const W = S.weather; return toast(`${WX(W.code)[1]} · oggi max ${fmt(W.maxToday, 0)}° · stanotte min ${fmt(W.minTonight, 0)}° · tramonto ${W.sunsetLabel}`); }
+  if (ds.act === 'siri-rotate') { if (confirm('I link attuali smetteranno di funzionare. Continuare?')) loadSiri(true); return; }
   if (ds.cmd) return send(ds.id, JSON.parse(ds.cmd));
   if (ds.themeSet) { ls.set('theme', ds.themeSet === 'auto' ? null : ds.themeSet); if (ds.themeSet === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = ds.themeSet; return renderSheet(); }
   if (ds.day) return b.classList.toggle('on');
@@ -759,8 +905,9 @@ async function init() {
     DEMO = true; S.cfg = await demoApi('config', {}); toast('Server non raggiungibile: modalità demo');
   }
   if (!VIEWS[S.view]) S.view = 'home';
-  render(); await refresh();
+  render(); await loadWeather(); await refresh();
   setInterval(refresh, 20000);
+  setInterval(async () => { await loadWeather(); if (!holding) render(); }, 30 * 60e3);
   setInterval(() => { const c = $('#clock'); if (c) c.textContent = new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }); }, 15000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 }
