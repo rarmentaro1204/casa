@@ -188,6 +188,72 @@ main{width:100%;max-width:1240px;padding:calc(22px + env(safe-area-inset-top)) c
 .hold.holding::before{width:100%;transition:width 1.2s linear}
 .hold>*{position:relative}
 
+/* Testata viva */
+.hero{position:relative;overflow:hidden;border-radius:28px;padding:22px 24px 20px;color:#fff;margin-bottom:14px;background:var(--hero);box-shadow:0 14px 34px -16px rgba(40,20,90,.55)}
+.hero.morning{--hero:linear-gradient(135deg,#f3a25a 0%,#e5707d 55%,#7a6fd8 100%)}
+.hero.day{--hero:linear-gradient(135deg,#46a2e4 0%,#3a7bd5 55%,#5c5fd6 100%)}
+.hero.evening{--hero:linear-gradient(135deg,#ee8a4b 0%,#c1507e 55%,#4b3a93 100%)}
+.hero.night{--hero:linear-gradient(135deg,#21305e 0%,#2c2556 60%,#111a37 100%)}
+.hero::before{content:"";position:absolute;right:-70px;top:-90px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.38),rgba(255,255,255,0) 68%);pointer-events:none}
+.hero.night::before{background:radial-gradient(circle,rgba(200,210,255,.22),rgba(255,255,255,0) 68%)}
+.hero>*{position:relative}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hello{font-size:clamp(30px,4.6vw,44px);font-weight:700;letter-spacing:-.025em;line-height:1.05}
+.hdate{opacity:.85;margin-top:5px;font-size:15px}
+.say{font-size:clamp(17px,2.1vw,21px);line-height:1.45;margin:18px 0 16px;max-width:780px;font-weight:500;opacity:.97}
+.say b{font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip2{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:99px;background:rgba(255,255,255,.18);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-size:14px;font-weight:600}
+.chip2 svg.i{width:17px;height:17px}
+.chip2.alert{background:#fff;color:#c2362e}
+.hero .wx{background:rgba(255,255,255,.18);border:0;color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.hero .wx svg.i{color:#fff}.hero .wx small{color:rgba(255,255,255,.82)}
+
+/* Stanze */
+.rooms2{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px}
+.rc{position:relative;display:flex;flex-direction:column;gap:2px;padding:14px;border-radius:22px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);min-height:140px;overflow:hidden;transition:transform .15s}
+.rc.warm{background:linear-gradient(160deg,var(--heat-soft) 0%,var(--surface) 80%);border-color:color-mix(in srgb,var(--heat) 28%,var(--line))}
+.rc.lit::after{content:"";position:absolute;left:-30px;bottom:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(245,197,66,.35),transparent 70%);pointer-events:none}
+.rc .nm{font-weight:650;font-size:15px;padding-right:70px}
+.rc .tp{font-size:36px;font-weight:300;letter-spacing:-.035em;margin-top:auto;line-height:1.05}
+.rc .sb{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc .bd{position:absolute;top:12px;right:12px;display:flex;gap:4px}
+.bdg{width:26px;height:26px;border-radius:9px;display:grid;place-items:center}
+.bdg svg.i{width:15px;height:15px;stroke-width:2}
+.bdg.heat{background:var(--heat);color:#fff;animation:pulse 2.4s ease-out infinite}
+.bdg.cool{background:var(--cool);color:#fff}.bdg.lit{background:#f5c542;color:#3a2a00}.bdg.bad{background:var(--bad);color:#fff}.bdg.open{background:var(--bad);color:#fff}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--heat) 60%,transparent)}70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.sug.bad .ic{background:var(--bad-soft);color:var(--bad)}.sug.warn .ic{background:var(--warn-soft);color:var(--warn)}
+.sug.bad{border-color:color-mix(in srgb,var(--bad) 30%,var(--line))}
+
+/* Termostato a ghiera */
+.dial{position:relative;width:min(280px,76vw);aspect-ratio:1;margin:0 auto;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab}
+.dial svg{width:100%;height:100%;overflow:visible;display:block}
+.dial .track{fill:none;stroke:var(--surface-3);stroke-width:18;stroke-linecap:round}
+.dial .val{fill:none;stroke:var(--accent);stroke-width:18;stroke-linecap:round;transition:stroke .2s}
+.dial.heat .val{stroke:var(--heat)}.dial.cool .val{stroke:var(--cool)}.dial.prog .val{stroke:var(--prog)}.dial.off .val{stroke:var(--faint)}
+.dial .knob{fill:#fff;stroke:rgba(0,0,0,.1);stroke-width:1;filter:drop-shadow(0 2px 5px rgba(0,0,0,.3))}
+.dial .cur{fill:var(--text);stroke:var(--surface);stroke-width:2}
+.dial .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.dial .center .v{font-size:62px;font-weight:200;letter-spacing:-.04em;line-height:1}
+.dial .center small{color:var(--muted);font-size:14px;margin-top:8px;text-align:center}
+.dial .center .k{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.fine{display:flex;align-items:center;justify-content:center;gap:16px;margin:-6px 0 6px}
+.fine button{width:48px;height:48px;border-radius:16px;background:var(--surface-2);display:grid;place-items:center}
+.fine span{font-size:13px;color:var(--faint)}
+
+/* Stanza (pannello) */
+.rsec{margin-top:18px}
+.rsec h4{margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.vr{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:var(--surface-2);margin-bottom:8px}
+.vr .grow{flex:1;min-width:0;text-align:left}.vr .grow b{display:block;font-weight:600}
+.vr .cur{font-size:24px;font-weight:300;letter-spacing:-.02em}
+.mini{display:flex;align-items:center;gap:4px;background:var(--surface);border-radius:12px;padding:3px}
+.mini button{width:34px;height:34px;border-radius:9px;display:grid;place-items:center}
+.mini button svg.i{width:16px;height:16px}
+.mini span{min-width:42px;text-align:center;font-weight:600;font-size:15px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
 /* Pannello dal basso */
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
 .scrim.open{opacity:1;pointer-events:auto}
@@ -470,10 +536,93 @@ function suggestions() {
   const hidden = dismissed();
   return out.filter((x) => !hidden[x.id]);
 }
+function period() { const hr = +romeNow().hhmm.slice(0, 2); return hr >= 5 && hr < 11 ? 'morning' : hr >= 11 && hr < 17 ? 'day' : hr >= 17 && hr < 21 ? 'evening' : 'night'; }
+function forYou() {
+  const al = alerts().map((x, i) => ({ id: 'al-' + x.t, k: x.k, icon: x.icon, t: x.t, d: x.d, a: ['Vedi', x.go ? `data-go="${x.go}"` : `data-sheet="${x.sheet}"`] }));
+  const hidden = dismissed();
+  return [...al.filter((x) => !hidden[x.id]), ...suggestions()];
+}
+function heroHTML() {
+  const temps = devs('thermostat').map((d) => S.st[d.id]?.current).filter((x) => x != null);
+  const avg = temps.length ? temps.reduce((a, b) => a + b, 0) / temps.length : null;
+  const x = heatSummary(), items = forYou(), bad = items.filter((y) => y.k === 'bad' || y.k === 'warn').length;
+  const low = (t) => (t ? t[0].toLowerCase() + t.slice(1) : '');
+  const say = [avg != null ? `In casa <b>${fmt(avg)}°</b>${S.weather ? `, fuori <b>${fmt(S.weather.temp, 0)}°</b>` : ''}.` : '',
+    `${h(x.title)}${x.sub ? `, ${h(low(x.sub))}` : ''}.`,
+    bad ? `${bad === 1 ? 'C’è una cosa' : `Ci sono ${bad} cose`} da controllare.` : items.length ? 'Ho qualche suggerimento per te.' : 'Tutto a posto.'].filter(Boolean).join(' ');
+  const chips = [];
+  if (bad) chips.push(`<button class="chip2 alert" data-scroll="foryou">${I('alert')}${bad} da controllare</button>`);
+  if (boostOn()) chips.push(`<button class="chip2" data-go="clima">${I('zap')}Scalda ora fino alle ${clockOf(S.heat.boost.until)}</button>`);
+  const nL = devs('light').filter((d) => S.st[d.id]?.on).length;
+  if (devs('light').length) chips.push(`<button class="chip2" data-go="luci">${I('bulb')}${nL ? `${nL} ${nL === 1 ? 'luce accesa' : 'luci accese'}` : 'Luci spente'}</button>`);
+  const acOn = devs('ac').filter((d) => S.st[d.id]?.on);
+  if (acOn.length) chips.push(`<button class="chip2" data-go="clima">${I('snow')}Clima ${acOn.map((d) => d.room.toLowerCase()).join(' e ')}</button>`);
+  for (const d of devs('lock')) { const l = S.st[d.id]?.locked; if (l !== undefined) chips.push(`<button class="chip2" data-go="ingresso">${I(l ? 'lock' : 'unlock')}${l ? 'Porta chiusa' : 'Porta aperta'}</button>`); }
+  return `<section class="hero ${period()}"><div class="hero-top"><div><div class="hello">${greeting()}</div><div class="hdate">${dateLine()}</div></div>${weatherChip()}</div>
+    <p class="say">${say}</p><div class="chips">${chips.join('')}</div></section>`;
+}
+function roomInfo(r) {
+  const list = (S.cfg.devices || []).filter((d) => d.room === r), st = (d) => S.st[d.id] || {};
+  const valves = list.filter((d) => d.type === 'thermostat'), acs = list.filter((d) => d.type === 'ac'), lights = list.filter((d) => d.type === 'light');
+  let temps = valves.map((d) => st(d).current).filter((x) => x != null);
+  if (!temps.length) temps = acs.map((d) => st(d).current).filter((x) => x != null);
+  const temp = temps.length ? temps.reduce((a, b) => a + b, 0) / temps.length : null;
+  const heating = valves.some((d) => vstat(d).k === 'heat'), acOn = acs.filter((d) => st(d).on), lit = lights.filter((d) => st(d).on).length;
+  const bad = valves.some((d) => vstat(d).k === 'bad') || acs.some((d) => st(d).online === false);
+  const tgt = (valves.find((d) => vstat(d).k === 'heat') ? st(valves.find((d) => vstat(d).k === 'heat')) : valves.map((d) => st(d)).find((x) => x.on && typeof x.target === 'number' && x.meMode !== 4))?.target;
+  const sub = bad ? 'Da controllare' : heating ? `Scalda a ${fmt(Math.min(tgt ?? 21, 30))}°` : acOn.length ? `Clima ${(AC_MODE[st(acOn[0]).mode] || ['', 'acceso'])[1].toLowerCase()} ${fmt(st(acOn[0]).target)}°`
+    : lit ? `${lit} ${lit === 1 ? 'luce accesa' : 'luci accese'}` : valves.some((d) => st(d).meMode === 4) ? 'Programma Meross' : valves.some((d) => st(d).on) ? 'In temperatura' : 'Tutto spento';
+  return { list, temp, heating, acOn, lit, bad, sub, acMode: acOn.length ? st(acOn[0]).mode : null };
+}
+function roomCard(r) {
+  const x = roomInfo(r), coolIc = ['heat', 'hot'].includes(x.acMode) ? 'sun' : 'snow';
+  const bd = [x.bad ? `<span class="bdg bad">${I('alert')}</span>` : '', x.heating ? `<span class="bdg heat">${I('flame')}</span>` : '', x.acOn.length ? `<span class="bdg cool">${I(coolIc)}</span>` : '', x.lit ? `<span class="bdg lit">${I('bulb')}</span>` : ''].join('');
+  return `<button class="rc ${x.heating ? 'warm' : ''} ${x.lit ? 'lit' : ''}" data-sheet="room" data-id="${h(r)}"><span class="nm">${h(r)}</span><span class="bd">${bd}</span>
+    ${x.temp != null ? `<span class="tp num">${fmt(x.temp)}°</span><span class="sb">${h(x.sub)}</span>` : `<span class="tp" style="font-size:20px;font-weight:600;letter-spacing:0">${h(x.sub)}</span>`}</button>`;
+}
+const roomsList = () => [...new Set((S.cfg.devices || []).filter((d) => !['lock', 'door'].includes(d.type)).map((d) => d.room))];
+
+// Termostato a ghiera: 270°, si trascina; i tasti − + servono per la precisione.
+const DC = 120, DR = 96;
+const dpt = (f) => { const a = ((135 + 270 * f) * Math.PI) / 180; return [DC + DR * Math.cos(a), DC + DR * Math.sin(a)]; };
+const darc = (f0, f1) => { if (f1 - f0 < 0.002) return ''; const [x0, y0] = dpt(f0), [x1, y1] = dpt(f1); return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${DR} ${DR} 0 ${(f1 - f0) * 270 > 180 ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`; };
+function dial(o) {
+  const f = (x) => Math.min(1, Math.max(0, (x - o.min) / (o.max - o.min)));
+  const v = typeof o.value === 'number' ? o.value : null, fv = f(v ?? o.min), [kx, ky] = dpt(fv), cur = o.current != null ? dpt(f(o.current)) : null;
+  const txt = v == null ? '--' : v > o.max ? 'Max' : fmt(v) + '°';
+  return `<div class="dial ${o.kind}" data-dial="${h(o.id)}" data-type="${o.type}" data-min="${o.min}" data-max="${o.max}" data-step="${o.step}" data-v="${v ?? ''}" role="slider" aria-valuemin="${o.min}" aria-valuemax="${o.max}" aria-valuenow="${v ?? ''}">
+    <svg viewBox="0 0 240 240" aria-hidden="true"><path class="track" d="${darc(0, 1)}"/><path class="val" d="${v == null ? '' : darc(0, fv)}"/>${cur ? `<circle class="cur" cx="${cur[0].toFixed(1)}" cy="${cur[1].toFixed(1)}" r="5"/>` : ''}<circle class="knob" cx="${kx.toFixed(1)}" cy="${ky.toFixed(1)}" r="14"/></svg>
+    <div class="center"><span class="k">${h(o.top || 'impostata')}</span><div class="v num">${txt}</div><small>${h(o.label || '')}</small></div></div>`;
+}
+let dragDial = null;
+function dialValue(el, e) {
+  const r = el.querySelector('svg').getBoundingClientRect(), x = ((e.clientX - r.left) / r.width) * 240, y = ((e.clientY - r.top) / r.height) * 240;
+  let rel = ((Math.atan2(y - DC, x - DC) * 180) / Math.PI - 135 + 720) % 360;
+  if (rel > 270) rel = rel > 315 ? 0 : 270;
+  const min = +el.dataset.min, max = +el.dataset.max, step = +el.dataset.step;
+  return Math.min(max, Math.max(min, Math.round((min + (rel / 270) * (max - min)) / step) * step));
+}
+function paintDial(el, v) {
+  const min = +el.dataset.min, max = +el.dataset.max, fv = (v - min) / (max - min), [x, y] = dpt(fv), k = el.querySelector('.knob');
+  el.querySelector('.val').setAttribute('d', darc(0, fv)); k.setAttribute('cx', x.toFixed(1)); k.setAttribute('cy', y.toFixed(1));
+  el.querySelector('.center .v').textContent = fmt(v) + '°'; el.dataset.v = v; el.setAttribute('aria-valuenow', v);
+}
+document.addEventListener('pointerdown', (e) => {
+  const el = e.target.closest('[data-dial]'); if (!el) return;
+  dragDial = el; el.dataset.v0 = el.dataset.v; holding = true; el.setPointerCapture?.(e.pointerId); paintDial(el, dialValue(el, e)); navigator.vibrate?.(8);
+});
+document.addEventListener('pointermove', (e) => { if (dragDial) paintDial(dragDial, dialValue(dragDial, e)); });
+document.addEventListener('pointerup', () => {
+  if (!dragDial) return;
+  const el = dragDial; dragDial = null; holding = false;
+  if (el.dataset.v !== el.dataset.v0) send(el.dataset.dial, el.dataset.type === 'valve' ? { on: true, target: +el.dataset.v } : { target: +el.dataset.v });
+});
+document.addEventListener('pointercancel', () => { if (dragDial) { const el = dragDial; dragDial = null; holding = false; if (el.dataset.v0) paintDial(el, +el.dataset.v0); } });
+
 function suggestionsHTML() {
-  const list = suggestions().slice(0, 4);
+  const list = forYou().slice(0, 5);
   if (!list.length) return '';
-  return sec('Suggerimenti') + `<div class="sugs">${list.map((x) => `<div class="sug"><span class="ic">${I(x.icon)}</span><div class="grow"><b>${h(x.t)}</b>${x.d ? `<small>${h(x.d)}</small>` : ''}</div>
+  return `<div id="foryou"></div>` + sec('Per te adesso') + `<div class="sugs">${list.map((x) => `<div class="sug ${x.k || ''}"><span class="ic">${I(x.icon)}</span><div class="grow"><b>${h(x.t)}</b>${x.d ? `<small>${h(x.d)}</small>` : ''}</div>
     <span class="end"><button class="btn sm on" ${x.a[1]}>${h(x.a[0])}</button><button class="x sm" data-dismiss="${h(x.id)}" aria-label="Nascondi">${I('x')}</button></span></div>`).join('')}</div>`;
 }
 
@@ -533,7 +682,8 @@ const head = (title, sub, right = '') => `<header class="head"><div><h1>${h(titl
 const sec = (title, right = '') => `<div class="sec"><h2>${h(title)}</h2>${right}</div>`;
 const go = (view, text) => `<button class="link" data-go="${view}">${h(text)}${I('right')}</button>`;
 function greeting() { const hr = +romeNow().hhmm.slice(0, 2); return hr < 5 ? 'Buonanotte' : hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera'; }
-function dateLine() { return `<span id="clock">${new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</span>`; }
+const nowText = () => { const d = new Date(), o = { timeZone: 'Europe/Rome' }; return `${d.toLocaleDateString('it-IT', { ...o, weekday: 'long', day: 'numeric', month: 'long' })} · ${d.toLocaleTimeString('it-IT', { ...o, hour: '2-digit', minute: '2-digit' })}`; };
+function dateLine() { return `<span id="clock">${nowText()}</span>`; }
 
 function modesHTML() {
   return `<div class="modes">${(S.cfg.modes || []).map((m) => `<button class="mode ${S.heat?.mode === m.id ? 'on' : ''}" data-mode="${m.id}" data-name="${h(m.name)}"><span class="ic">${I(MODE_IC[m.id] || 'home')}</span><span><b>${h(m.name)}</b><small>${h(m.info || '')}</small></span></button>`).join('')}</div>`;
@@ -543,16 +693,7 @@ function heatCard(full) {
   const act = x.boost ? `<button class="btn sm act" data-boost-cancel>Annulla</button>`
     : S.heat?.mode && S.heat.mode !== 'estate' && !(showTl && inSlot()) ? `<button class="btn sm act" data-boost="zona">${I('zap')}Scalda 1 ora</button>` : '';
   return `<div class="hs"><span class="ic ${x.ic}">${I(x.icon)}</span><div><b>${h(x.title)}</b><div class="muted">${h(x.sub)}</div></div>${act}</div>${showTl || boostOn() ? timeline() : ''}
-    ${full ? '' : alertsHTML()}`;
-}
-function alertsHTML() {
-  const a = alerts();
-  if (!a.length) return '';
-  return `<div class="alerts">${a.map((x) => `<button class="al ${x.k}" ${x.go ? `data-go="${x.go}"` : `data-sheet="${x.sheet}"`}>${I(x.icon)}<span><b>${h(x.t)}</b>${x.d ? `<small>${h(x.d)}</small>` : ''}</span>${I('right', 'chev')}</button>`).join('')}</div>`;
-}
-function tempTile(d) {
-  const s = S.st[d.id] || {}, v = vstat(d);
-  return `<button class="tt ${v.k === 'heat' ? 'heat' : ''}" data-sheet="valve" data-id="${h(d.id)}"><span class="n">${h(label(d))}</span><span class="t num">${fmt(s.current)}°</span><span class="st ${v.k}">${h(v.t)}${s.on && s.target != null && s.meMode !== 4 && v.k !== 'bad' ? ` · ${fmt(s.target)}°` : ''}</span></button>`;
+`;
 }
 function valveRow(d) {
   const s = S.st[d.id] || {}, v = vstat(d), x = heatFor(d.id);
@@ -571,15 +712,13 @@ const VIEWS = {
       devs('light').length ? `<button class="qa" data-bulk="lights-off"><span class="ic">${I('bulb')}</span>Spegni le luci</button>` : '',
       devs('shutter').length ? `<button class="qa" data-bulk="sh-down"><span class="ic">${I('down')}</span>Abbassa tapparelle</button><button class="qa" data-bulk="sh-up"><span class="ic">${I('up')}</span>Alza tapparelle</button>` : '',
     ].join('');
-    const lock = devs('lock')[0], ls_ = lock ? S.st[lock.id] || {} : null;
-    return head(greeting(), dateLine() + (lightsOn ? ` · ${lightsOn} ${lightsOn === 1 ? 'luce accesa' : 'luci accese'}` : ''), weatherChip())
+    return heroHTML()
       + modesHTML()
       + `<div class="card" style="margin-top:14px">${heatCard(false)}</div>`
       + suggestionsHTML()
-      + sec('Temperature', go('clima', 'Clima'))
-      + `<div class="temps">${valves.map(tempTile).join('')}</div>`
-      + sec('Azioni rapide') + `<div class="quick">${quick}</div>`
-      + (lock ? sec('Ingresso', go('ingresso', 'Apri')) + `<button class="qa" style="width:100%" data-go="ingresso"><span class="ic">${I(ls_.locked === false ? 'unlock' : 'lock')}</span><span>${h(label(lock))}: ${ls_.locked === undefined ? 'stato sconosciuto' : ls_.locked ? 'chiusa' : 'aperta'}</span></button>` : '');
+      + sec('Stanze', go('clima', 'Clima'))
+      + `<div class="rooms2">${roomsList().map(roomCard).join('')}</div>`
+      + sec('Azioni rapide') + `<div class="quick">${quick}</div>`;
   },
 
   clima() {
@@ -645,15 +784,15 @@ const VIEWS = {
 };
 
 // ---------------------------------------------------------------- climatizzatori
-function acControls(d, full) {
+function acControls(d, full, noStepper) {
   const s = S.st[d.id] || {}, c = s.caps || { modes: [], fans: [], swing: false, extras: [], temp: { min: 16, max: 30, step: 1 } };
   const step = c.temp?.step || 1, t = s.target ?? 24, clamp = (x) => Math.min(c.temp?.max ?? 30, Math.max(c.temp?.min ?? 16, x));
   const err = s.online === false ? `<div class="err-line" style="margin-top:10px">${h(s.error || 'Non raggiungibile')}</div>` : '';
-  let out = `<div class="ac-top"><div><b>${h(d.room)}</b><small>${s.current != null ? `In stanza ${fmt(s.current)}°` : h(label(d))}</small></div>
+  let out = `<div class="ac-top"><div>${noStepper ? `<b>${s.on ? 'Acceso' : 'Spento'}</b><small>Tocca per ${s.on ? 'spegnere' : 'accendere'}</small>` : `<b>${h(d.room)}</b><small>${s.current != null ? `In stanza ${fmt(s.current)}°` : h(label(d))}</small>`}</div>
       <button class="pwr ${s.on ? 'on' : ''}" aria-label="Accendi o spegni" ${cmdAttr(d.id, { on: !s.on })}>${I('power')}</button></div>${err}
-    <div class="stepper"><button aria-label="Meno" ${cmdAttr(d.id, { target: clamp(t - step) })}>${I('minus')}</button>
+    ${noStepper ? '<div style="height:14px"></div>' : `<div class="stepper"><button aria-label="Meno" ${cmdAttr(d.id, { target: clamp(t - step) })}>${I('minus')}</button>
       <div class="v num">${fmt(s.target)}°<small>${s.on ? 'impostata' : 'spento'}</small></div>
-      <button aria-label="Più" ${cmdAttr(d.id, { target: clamp(t + step) })}>${I('plus')}</button></div>`;
+      <button aria-label="Più" ${cmdAttr(d.id, { target: clamp(t + step) })}>${I('plus')}</button></div>`}`;
   if (c.modes?.length) out += `<div class="seg wrap">${c.modes.map((m) => { const [ic, n] = AC_MODE[m] || ['auto', m]; return `<button class="${s.mode === m ? 'on' : ''}" ${cmdAttr(d.id, { mode: m })}>${I(ic)}${h(n)}</button>`; }).join('')}</div>`;
   if (!full) {
     if (c.fans?.length || c.swing || c.extras?.length) out += `<button class="btn more" data-sheet="ac" data-id="${h(d.id)}">Ventola e opzioni${I('right')}</button>`;
@@ -669,7 +808,7 @@ function acControls(d, full) {
 
 // ---------------------------------------------------------------- pannelli dal basso
 const sheetHead = (title, sub = '') => `<div class="sheet-h"><div><h3>${h(title)}</h3>${sub ? `<div class="muted">${sub}</div>` : ''}</div><button class="x" data-close aria-label="Chiudi">${I('x')}</button></div>`;
-const LIVE = new Set(['valve', 'ac', 'settings']);
+const LIVE = new Set(['valve', 'ac', 'settings', 'room']);
 const SHEETS = {
   valve(id) {
     const d = byId(id); if (!d) return sheetHead('Valvola');
@@ -679,14 +818,37 @@ const SHEETS = {
     if ((H.group || []).includes(id) && S.heat?.mode === 'inverno' && S.heat?.policy === 'app' && S.heat?.next) hint = `Gli orari la cambieranno ${whenLabel(S.heat.next)}.`;
     if (s.meMode === 4) hint = 'La valvola segue i programmi Meross: impostare una temperatura qui la mette in manuale.';
     return sheetHead(label(d), `<span class="st ${v.k}">${h(v.t)}</span>`)
-      + `<div class="bigtemp"><div class="t num">${fmt(s.current)}°</div><small>temperatura nella stanza</small></div>`
-      + `<div class="stepper"><button aria-label="Meno" ${set(t - 0.5)}>${I('minus')}</button><div class="v num" style="font-size:40px">${s.target != null ? fmt(s.target) + '°' : '--'}<small>impostata</small></div><button aria-label="Più" ${set(t + 0.5)}>${I('plus')}</button></div>`
+      + dial({ id, type: 'valve', value: typeof s.target === 'number' ? s.target : null, current: s.current, min: 5, max: 30, step: 0.5, kind: s.on === false ? 'off' : s.meMode === 4 ? 'prog' : 'heat', top: s.on === false ? 'spenta' : 'impostata', label: s.current != null ? `in stanza ${fmt(s.current)}°` : '' })
+      + `<div class="fine"><button aria-label="Meno" ${set(t - 0.5)}>${I('minus')}</button><span>trascina il cerchio</span><button aria-label="Più" ${set(t + 0.5)}>${I('plus')}</button></div>`
       + `<div class="btns"><button class="btn ${s.on ? 'on' : ''}" ${cmdAttr(id, { on: !s.on })}>${I('power')}${s.on ? 'Accesa' : 'Spenta'}</button><button class="btn" ${cmdAttr(id, { on: true, target: 'max' })}>${I('flame')}Al massimo</button></div>`
       + `<div class="btns" style="margin-top:10px">${x?.boost && boostOn() ? `<button class="btn" data-boost-cancel>${I('zap')}Annulla «Scalda ora» (fino alle ${clockOf(S.heat.boost.until)})</button>` : `<button class="btn" data-boost='${JSON.stringify([id])}'>${I('zap')}Scalda a ${S.cfg.heating?.temp ?? 21}° per 1 ora</button>`}</div>`
       + (x?.ok === false ? `<div class="hint" style="background:var(--bad-soft);color:var(--text)">${I('alert')}<span>Ultimo comando non arrivato: ${h(x.error || '')}</span></div>` : '')
       + `<div class="hint">${I('info')}<span>${h(hint)}${s.batteryMv ? ` Pile ${(s.batteryMv / 1000).toLocaleString('it-IT', { maximumFractionDigits: 2 })} V.` : ''}</span></div>`;
   },
-  ac(id) { const d = byId(id); return sheetHead('Climatizzatore') + `<div class="ac ${S.st[id]?.on ? '' : 'off'}">${acControls(d, true)}</div>`; },
+  ac(id) {
+    const d = byId(id), s = S.st[id] || {}, c = s.caps?.temp || { min: 16, max: 30, step: 1 }, t = s.target ?? 24, step = c.step || 1;
+    const kind = !s.on ? 'off' : ['cool', 'cold'].includes(s.mode) ? 'cool' : ['heat', 'hot'].includes(s.mode) ? 'heat' : '';
+    const set = (n) => cmdAttr(id, { target: Math.min(c.max ?? 30, Math.max(c.min ?? 16, n)) });
+    return sheetHead('Climatizzatore', h(d?.room || ''))
+      + dial({ id, type: 'ac', value: typeof s.target === 'number' ? s.target : null, current: s.current, min: c.min ?? 16, max: c.max ?? 30, step, kind, top: s.on ? (AC_MODE[s.mode] || ['', 'acceso'])[1] : 'spento', label: s.current != null ? `in stanza ${fmt(s.current)}°` : '' })
+      + `<div class="fine"><button aria-label="Meno" ${set(t - step)}>${I('minus')}</button><span>trascina il cerchio</span><button aria-label="Più" ${set(t + step)}>${I('plus')}</button></div>`
+      + `<div class="ac ${s.on ? '' : 'off'}">${acControls(d, true, true)}</div>`;
+  },
+  room(r) {
+    const x = roomInfo(r), list = x.list, st = (d) => S.st[d.id] || {};
+    const valves = list.filter((d) => d.type === 'thermostat'), acs = list.filter((d) => d.type === 'ac'), lights = list.filter((d) => d.type === 'light'), shs = list.filter((d) => d.type === 'shutter');
+    const vr = (d) => { const s = st(d), v = vstat(d), t = typeof s.target === 'number' ? s.target : 20, set = (n) => cmdAttr(d.id, { on: true, target: Math.min(30, Math.max(5, n)) });
+      return `<div class="vr"><button class="grow" data-sheet="valve" data-id="${h(d.id)}"><b>${h(label(d))}</b><span class="st ${v.k}">${h(v.t)}</span></button><span class="cur num">${fmt(s.current)}°</span>
+        <span class="mini"><button aria-label="Meno" ${set(t - 0.5)}>${I('minus')}</button><span class="num">${s.target > 30 ? 'Max' : s.target != null ? fmt(s.target) + '°' : '--'}</span><button aria-label="Più" ${set(t + 0.5)}>${I('plus')}</button></span></div>`; };
+    const acr = (d) => { const s = st(d), c = s.caps?.temp || { min: 16, max: 30, step: 1 }, t = s.target ?? 24, step = c.step || 1, set = (n) => cmdAttr(d.id, { target: Math.min(c.max ?? 30, Math.max(c.min ?? 16, n)) });
+      return `<div class="vr"><button class="pwr ${s.on ? 'on' : ''}" style="width:44px;height:44px" aria-label="Accendi o spegni" ${cmdAttr(d.id, { on: !s.on })}>${I('power')}</button><button class="grow" data-sheet="ac" data-id="${h(d.id)}"><b>${h(label(d))}</b><span class="st ${s.on ? 'ok' : ''}">${s.on ? (AC_MODE[s.mode] || ['', 'Acceso'])[1] : 'Spento'}</span></button>
+        <span class="mini"><button aria-label="Meno" ${set(t - step)}>${I('minus')}</button><span class="num">${fmt(s.target)}°</span><button aria-label="Più" ${set(t + step)}>${I('plus')}</button></span></div>`; };
+    const lt = (d) => { const s = st(d); return `<button class="lt ${s.on ? 'on' : ''}" style="margin-bottom:8px" ${cmdAttr(d.id, { on: !s.on })}><span class="ic">${I('bulb')}</span>${h(label(d))}<span class="r">${s.online === false ? 'non raggiungibile' : s.on ? 'Accesa' : 'Spenta'}</span></button>`; };
+    const sh = (d) => { const s = st(d); return `<div class="sh" style="margin-bottom:8px"><span class="ic">${I('blinds')}</span><b>${h(label(d))}</b><span class="ctl"><button class="${s.action === 'up' ? 'on' : ''}" aria-label="Alza" ${cmdAttr(d.id, { action: 'up' })}>${I('up')}</button><button aria-label="Ferma" ${cmdAttr(d.id, { action: 'stop' })}>${I('stop')}</button><button class="${s.action === 'down' ? 'on' : ''}" aria-label="Abbassa" ${cmdAttr(d.id, { action: 'down' })}>${I('down')}</button></span></div>`; };
+    const block = (t, arr, fn) => (arr.length ? `<div class="rsec"><h4>${t}</h4>${arr.map(fn).join('')}</div>` : '');
+    return sheetHead(r, `${x.temp != null ? fmt(x.temp) + '° · ' : ''}${h(x.sub)}`)
+      + block('Termosifoni', valves, vr) + block('Climatizzatore', acs, acr) + block('Luci', lights, lt) + block('Tapparelle', shs, sh);
+  },
   settings() {
     const th = ls.get('theme') || 'auto';
     return sheetHead('Impostazioni') + `<div class="list">
@@ -846,6 +1008,7 @@ document.addEventListener('click', (e) => {
   if (ds.scene) return runScene(ds.scene, ds.name);
   if (ds.bulk) return bulk(ds.bulk);
   if (ds.acts) return sendMany(JSON.parse(ds.acts));
+  if (ds.scroll) return $('#' + ds.scroll)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   if (ds.boost) return setBoost(ds.boost === 'zona' ? 'zona' : JSON.parse(ds.boost));
   if ('boostCancel' in ds) return cancelBoost();
   if (ds.dismiss) { const m = dismissed(); m[ds.dismiss] = Date.now() + 3 * 3600e3; ls.set('dismiss', JSON.stringify(m)); return render(); }
@@ -908,7 +1071,7 @@ async function init() {
   render(); await loadWeather(); await refresh();
   setInterval(refresh, 20000);
   setInterval(async () => { await loadWeather(); if (!holding) render(); }, 30 * 60e3);
-  setInterval(() => { const c = $('#clock'); if (c) c.textContent = new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }); }, 15000);
+  setInterval(() => { const c = $('#clock'); if (c) c.textContent = nowText(); }, 15000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 }
 init();
