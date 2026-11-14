@@ -445,7 +445,7 @@ const demo = (() => {
     l1: { on: true, online: true }, l2: { on: false, online: true }, l3: { on: false, online: true }, l4: { on: false, online: true },
     k1: { locked: true, battery: 76, online: true },
   };
-  return { cfg, st, mode: 'inverno', policy: 'app', boost: null, sch: [{ id: 'x', scene: 'buongiorno', time: '07:00', days: [1, 2, 3, 4, 5], enabled: true }] };
+  return { cfg, st, mode: 'inverno', policy: 'app', boost: null, pres: { roberto: { home: true, at: Date.now() - 3600e3 } }, sch: [{ id: 'x', scene: 'buongiorno', time: '07:00', days: [1, 2, 3, 4, 5], enabled: true }] };
 })();
 function demoHeat() {
   const H = demo.cfg.heating, now = romeNow(), on = demo.mode === 'inverno' && demo.policy === 'app' && slotsFor(now.day).some(([a, b]) => now.hhmm >= a && now.hhmm < b);
@@ -470,8 +470,9 @@ async function demoApi(path, opts) {
   if (path === 'policy') { demo.policy = body.policy; return []; }
   if (path === 'boost') { demo.boost = body.cancel ? null : { ids: body.ids === 'zona' ? demo.cfg.heating.group : body.ids, temp: body.temp || 21, until: Date.now() + (body.minutes || 60) * 60e3 }; (demo.boost?.ids || []).forEach((id) => { demo.st[id] = { ...demo.st[id], on: true, target: 21, heating: true }; }); return []; }
   if (path === 'push-info') return { key: '', devices: 1 };
-  if (path.startsWith('ask')) { if (opts.method === 'POST') { demo.ask = body.answer; demo.mode = body.answer === 'off' ? 'fuori' : demo.mode; return { ok: true, message: body.answer === 'off' ? 'Riscaldamento abbassato a 15° («Esco di casa»). Al rientro tocca «Casa inverno».' : 'Ok, lascio il riscaldamento com’è.' }; } return demo.ask ? { state: 'answered', message: 'Hai già risposto.' } : { state: 'open', text: 'Hai lasciato casa e il riscaldamento sta scaldando a 21° fino alle 20:00. Vuoi spegnerlo?' }; }
-  if (path === 'hook-info') return { base: location.origin + '/api/hook', token: 'esempio-token', actions: [['inverno', 'Casa inverno'], ['fuori', 'Esco di casa'], ['estate', 'Casa estate'], ['uscito', 'Sono uscito di casa (chiede se spegnere il riscaldamento)'], ['scalda', "Scalda la zona giorno per un'ora"], ['luci-off', 'Spegni tutte le luci'], ['tapparelle-giu', 'Abbassa le tapparelle'], ['tapparelle-su', 'Alza le tapparelle'], ['buonanotte', 'Buonanotte']].map(([id, name]) => ({ id, name })) };
+  if (path === 'presence') { if (opts.method === 'POST') demo.pres[body.person] = { home: body.home, at: Date.now() }; return [['roberto', 'Roberto'], ['francesca', 'Francesca']].map(([id, name]) => ({ id, name, ...(demo.pres[id] || { home: null, at: null }) })); }
+  if (path.startsWith('ask')) { if (opts.method === 'POST') { const was = demo.ask; demo.ask = demo.ask || (body.answer === 'boost' ? 'Scaldo la zona giorno a 21° per un\'ora, poi tornano gli orari.' : body.answer === 'sched' ? '«Casa inverno» riattivato: si torna agli orari.' : 'Ok, lascio così.'); return { ok: true, already: !!was, message: demo.ask }; } return demo.ask ? { state: 'answered', message: demo.ask } : { state: 'open', title: 'Francesca è a casa', text: 'Francesca è a casa. Il riscaldamento è su «Esco di casa» (15°). Lo riaccendo?', choices: [{ id: 'boost', label: 'Scalda ora (1 ora)' }, { id: 'sched', label: 'Solo orari (dalle 18:00)' }, { id: 'keep', label: 'Lascia così' }] }; }
+  if (path === 'hook-info') return { base: location.origin + '/api/hook', token: 'esempio-token', actions: [['inverno', 'Casa inverno'], ['fuori', 'Esco di casa'], ['estate', 'Casa estate'], ['scalda', "Scalda la zona giorno per un'ora"], ['luci-off', 'Spegni tutte le luci'], ['tapparelle-giu', 'Abbassa le tapparelle'], ['tapparelle-su', 'Alza le tapparelle'], ['buonanotte', 'Buonanotte']].map(([id, name]) => ({ id, name })), people: [{ id: 'roberto', name: 'Roberto' }, { id: 'francesca', name: 'Francesca' }] };
   if (path === 'command') { const s = demo.st[body.device] || {}; demo.st[body.device] = { ...s, ...body.command, extras: { ...(s.extras || {}), ...Object.fromEntries(Object.entries(body.command).filter(([k]) => EXTRA[k])) } }; return { ok: true }; }
   if (path === 'scene') return [];
   if (path === 'schedules') { if (opts.method === 'PUT') demo.sch = body.schedules; return demo.sch; }
@@ -857,7 +858,7 @@ const SHEETS = {
     return sheetHead('Impostazioni') + `<div class="list">
       <button class="row" data-sheet="sched">${I('clock')}<span class="grow"><b>Orari automatici</b><small>Avvia «Buongiorno» o «Buonanotte» a un orario</small></span>${I('right')}</button>
       <button class="row" data-sheet="siri">${I('mic')}<span class="grow"><b>Siri e automazioni</b><small>«Ehi Siri, esco di casa» e scenari automatici quando esci o rientri</small></span>${I('right')}</button>
-      <button class="row" data-sheet="notify">${I('bell')}<span class="grow"><b>Notifiche e uscita di casa</b><small>Quando esci e il riscaldamento è acceso ti chiede se spegnerlo</small></span>${I('right')}</button>
+      <button class="row" data-sheet="notify">${I('bell')}<span class="grow"><b>Notifiche e presenza</b><small>Chiede se spegnere il riscaldamento quando uscite tutti e se riaccenderlo quando rientrate</small></span>${I('right')}</button>
       <button class="row" data-act="geo">${I('pin')}<span class="grow"><b>Meteo</b><small>${S.weather ? 'Attivo · tocca per aggiornare la posizione' : 'Usa la posizione di questo dispositivo'}</small></span>${I('right')}</button>
       <button class="row" data-sheet="diag">${I('wrench')}<span class="grow"><b>Diagnostica</b><small>Valvole, Sonoff, condizionatori e SwitchBot trovati</small></span>${I('right')}</button>
       <div class="row">${I('palette')}<span class="grow"><b>Aspetto</b></span><span class="seg" style="flex:none">${[['auto', 'Auto'], ['light', 'Chiaro'], ['dark', 'Scuro']].map(([k, n]) => `<button class="${th === k ? 'on' : ''}" data-theme-set="${k}">${n}</button>`).join('')}</span></div>
@@ -873,8 +874,8 @@ const SHEETS = {
       <div class="days">${['L', 'M', 'M', 'G', 'V', 'S', 'D'].map((x, i) => `<button class="on" data-day="${i + 1}">${x}</button>`).join('')}</div>
       <button class="btn primary" data-act="sch-add">Aggiungi orario</button></div>`;
   },
-  notify() { return sheetHead('Notifiche e uscita di casa', 'Il telefono ti avvisa quando esci e il riscaldamento è acceso') + '<div id="notifyBody"><p class="empty">Carico…</p></div>'; },
-  ask(id) { return sheetHead('Sei uscito di casa') + `<div id="askBody" data-id="${h(id)}"><p class="empty">Carico…</p></div>`; },
+  notify() { return sheetHead('Notifiche e presenza', 'Chi è in casa e domande sul riscaldamento') + '<div id="notifyBody"><p class="empty">Carico…</p></div>'; },
+  ask(id) { return sheetHead('Riscaldamento') + `<div id="askBody" data-id="${h(id)}"><p class="empty">Carico…</p></div>`; },
   siri() { return sheetHead('Siri e automazioni', 'Comanda la casa con la voce o in automatico') + '<div id="siriBody"><p class="empty">Carico…</p></div>'; },
   pin() {
     return sheetHead('Inserisci il PIN', 'Serve una volta sola su questo dispositivo') + `<form class="form" id="pinForm"><input id="pinIn" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN" style="font-size:22px;text-align:center;letter-spacing:.3em"><button class="btn primary">Entra</button></form>`;
@@ -927,23 +928,32 @@ const mySub = async () => (PUSH_OK && !DEMO ? (await navigator.serviceWorker.rea
 
 async function loadNotify() {
   const el = () => $('#notifyBody'); if (!el()) return;
-  let sub = null, info = null, hook = null, err = '';
+  let sub = null, info = null, hook = null, pres = [], err = '';
   try { sub = await mySub(); } catch {}
-  try { [info, hook] = await Promise.all([api('push-info'), api('hook-info', { method: 'POST', body: JSON.stringify({}) })]); } catch (e) { err = e.message; }
+  try { [info, hook, pres] = await Promise.all([api('push-info'), api('hook-info', { method: 'POST', body: JSON.stringify({}) }), api('presence')]); } catch (e) { err = e.message; }
   if (!el()) return;
+  const ppl = hook?.people || [], me = ppl.find((x) => x.id === ls.get('person'));
   const perm = PUSH_OK ? Notification.permission : 'unsupported';
   let state;
   if (DEMO) state = `<div class="hint" style="margin-top:0">${I('info')}<span>In modalità demo le notifiche non si attivano. Sull’app vera qui trovi il pulsante per attivarle.</span></div>`;
   else if (!PUSH_OK) state = `<div class="hint" style="margin-top:0">${I('alert')}<span>${IOS && !STANDALONE ? 'Su iPhone le notifiche funzionano solo se l’app è sulla Home: in Safari tocca <b>Condividi</b> → <b>Aggiungi alla schermata Home</b>, poi riaprila da lì e torna qui. Serve iOS 16.4 o successivo.' : 'Questo browser non supporta le notifiche.'}</span></div>`;
   else if (perm === 'denied') state = `<div class="hint" style="margin-top:0">${I('alert')}<span>Le notifiche per questa app sono bloccate. Riattivale dalle impostazioni del telefono (Impostazioni → Notifiche → Casa).</span></div>`;
-  else if (sub) state = `<div class="row"><span class="grow"><b>Notifiche attive su questo dispositivo</b><small>${info ? `Dispositivi registrati: ${info.devices}` : ''}</small></span><span class="tag ok">attive</span></div><div class="btns"><button class="btn" data-act="push-test">Invia una prova</button><button class="btn" data-act="push-off">Disattiva</button></div>`;
-  else state = `<div class="btns" style="margin-top:0"><button class="btn primary" data-act="push-on">${I('bell')}Attiva le notifiche su questo dispositivo</button></div>`;
-  const link = hook ? `${hook.base}?t=${encodeURIComponent(hook.token)}&do=uscito` : '';
-  el().innerHTML = (err ? `<p class="empty" style="color:var(--bad)">Errore: ${h(err)}</p>` : '') + `<h4 class="sh4">1 · Questo telefono</h4>${state}
-    <h4 class="sh4">2 · Sapere quando esci di casa</h4>
-    <div class="hint" style="margin-top:0">${I('info')}<span>Il telefono controlla da solo la posizione, anche con l’app chiusa e senza consumare batteria: lo fa il sistema con una «zona» attorno a casa. Quando esci chiama questo link; se in quel momento il riscaldamento sta scaldando (fasce orarie, programmi Meross o «Scalda ora») ricevi la notifica «Vuoi spegnerlo?». Se non sta scaldando, non succede niente.</span></div>
-    <ol class="steps"><li>Impostazioni iPhone → Privacy → Localizzazione → <b>Comandi</b> → <b>Sempre</b>.</li><li><b>Comandi</b> → <b>Automazione</b> → <b>+</b> → <b>Parto</b> (<i>Leave</i>) → scegli <b>Casa</b> o un punto sulla mappa → <b>Esegui subito</b>.</li><li>Azione <b>Ottieni contenuto dell’URL</b>: incolla il link qui sotto.</li><li>Per rientrare in modo automatico vedi «Siri e automazioni» (<b>Arrivo</b> → «Casa inverno»).</li></ol>
-    ${link ? `<div class="list"><div class="row"><span class="grow"><b>Link «Sono uscito di casa»</b><small class="urlbox">${h(link)}</small></span><button class="btn sm" data-copy="${h(link)}">${I('copy')}Copia</button></div></div><div class="hint">${I('alert')}<span>Il link è segreto come quelli di Siri: non condividerlo. Rispondere «Spegni» porta il riscaldamento alla temperatura di «Esco di casa»; al rientro tocca «Casa inverno».</span></div>` : ''}`;
+  else if (sub) state = `<div class="row"><span class="grow"><b>Notifiche attive su questo telefono</b><small>${info ? `Dispositivi registrati: ${info.devices}` : ''}</small></span><span class="tag ok">attive</span></div><div class="btns"><button class="btn" data-act="push-test">Invia una prova</button><button class="btn" data-act="push-off">Disattiva</button></div>`;
+  else state = `<div class="btns" style="margin-top:0"><button class="btn primary" data-act="push-on">${I('bell')}Attiva le notifiche su questo telefono</button></div>`;
+  const ago = (t) => (t ? ` · dalle ${clockOf(t)}${new Date(t).toDateString() !== new Date().toDateString() ? ' del ' + new Date(t).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }) : ''}` : '');
+  const presRows = pres.map((x) => `<div class="row"><span class="grow"><b>${h(x.name)}</b><small>${x.home == null ? 'non ancora rilevato' : (x.home ? 'a casa' : 'fuori') + ago(x.at)}</small></span><button class="btn sm" data-pres="${h(x.id)}" data-home="${x.home ? '0' : '1'}">${x.home ? 'Segna fuori' : 'Segna a casa'}</button></div>`).join('');
+  const link = (what) => `${hook.base}?t=${encodeURIComponent(hook.token)}&do=${what}&chi=${encodeURIComponent(me.id)}`;
+  const linkRow = (t, what) => `<div class="row"><span class="grow"><b>${t}</b><small class="urlbox">${h(link(what))}</small></span><button class="btn sm" data-copy="${h(link(what))}">${I('copy')}Copia</button></div>`;
+  el().innerHTML = (err ? `<p class="empty" style="color:var(--bad)">Errore: ${h(err)}</p>` : '') + `
+    <div class="hint" style="margin-top:0">${I('info')}<span>Quando <b>escono tutti</b> e il riscaldamento sta scaldando, arriva a tutti i telefoni «Lo spengo?». Quando <b>rientra qualcuno</b> e il riscaldamento è spento, arriva a tutti «Lo riaccendo?». Basta che risponda uno.</span></div>
+    <h4 class="sh4">1 · Chi usa questo telefono</h4>
+    <div class="seg">${ppl.map((x) => `<button class="${me?.id === x.id ? 'on' : ''}" data-person="${h(x.id)}">${h(x.name)}</button>`).join('')}</div>
+    <h4 class="sh4">2 · Notifiche</h4>${state}
+    <h4 class="sh4">In casa adesso</h4><div class="list">${presRows || '<p class="empty">—</p>'}</div>
+    <h4 class="sh4">3 · Automazioni di ${me ? h(me.name) : '…'}</h4>
+    ${!me ? '<p class="empty">Scegli prima chi usa questo telefono.</p>' : !hook ? '' : `<ol class="steps"><li>Impostazioni iPhone → Privacy → Localizzazione → <b>Comandi</b> → <b>Sempre</b>.</li><li><b>Comandi</b> → <b>Automazione</b> → <b>+</b> → <b>Parto</b> (<i>Leave</i>) → <b>Casa</b> → <b>Esegui subito</b> → azione <b>Ottieni contenuto dell’URL</b> con il link «Esco».</li><li>Di nuovo <b>+</b> → <b>Arrivo</b> (<i>Arrive</i>) → <b>Casa</b> → <b>Esegui subito</b> → <b>Ottieni contenuto dell’URL</b> con il link «Arrivo».</li><li>Ripeti i passi 1–3 sul telefono dell’altra persona, scegliendo il suo nome qui sopra.</li></ol>
+    <div class="list">${linkRow('Link «Esco» di ' + h(me.name), 'uscito')}${linkRow('Link «Arrivo» di ' + h(me.name), 'arrivato')}</div>
+    <div class="hint">${I('alert')}<span>I link sono segreti come quelli di Siri: non condividerli. Ognuno contiene il nome della persona, quindi usa su ogni telefono i suoi.</span></div>`}`;
 }
 async function pushOn() {
   if (DEMO || !PUSH_OK) return;
@@ -966,16 +976,21 @@ async function pushTest() {
   try { const r = await api('push-test', { method: 'POST', body: '{}' }); toast(r.sent ? 'Notifica inviata' : 'Nessuna notifica partita: riattiva le notifiche'); }
   catch (e) { toast('Errore: ' + e.message); }
 }
+async function setPres(id, home) {
+  try { await api('presence', { method: 'POST', body: JSON.stringify({ person: id, home }) }); } catch (e) { toast('Errore: ' + e.message); }
+  loadNotify();
+}
 async function loadAsk(id) {
   const el = () => $('#askBody'); if (!el()) return;
   let r; try { r = await api('ask?id=' + encodeURIComponent(id)); } catch (e) { el().innerHTML = `<p class="empty">Errore: ${h(e.message)}</p>`; return; }
   if (!el()) return;
-  if (r.state === 'open') el().innerHTML = `<p style="font-size:17px;margin:4px 0 0">${h(r.text)}</p><div class="btns"><button class="btn primary" data-act="ask-off" data-id="${h(id)}">${I('flame')}Spegni il riscaldamento</button></div><div class="btns" style="margin-top:10px"><button class="btn" data-act="ask-keep" data-id="${h(id)}">Lascia acceso</button></div><div class="hint">${I('info')}<span>«Spegni» porta le valvole a ${fmt(S.cfg?.heating?.awayTemp, 0)}° (scenario «Esco di casa»). Al rientro tocca «Casa inverno».</span></div>`;
-  else if (r.state === 'answered') el().innerHTML = `<p class="empty">${h(r.message || 'Hai già risposto.')}</p>`;
+  if (r.title) { const t = $('#sheet .sheet-h h3'); if (t) t.textContent = r.title; }
+  if (r.state === 'open') el().innerHTML = `<p style="font-size:17px;margin:4px 0 0">${h(r.text)}</p>` + r.choices.map((c, i) => `<div class="btns"${i ? ' style="margin-top:10px"' : ''}><button class="btn${i ? '' : ' primary'}" data-act="ask" data-id="${h(id)}" data-choice="${h(c.id)}">${h(c.label)}</button></div>`).join('');
+  else if (r.state === 'answered') el().innerHTML = `<p class="empty">Ha già risposto qualcuno. ${h(r.message || '')}</p>`;
   else el().innerHTML = `<p class="empty">${r.state === 'expired' ? 'Questa domanda è scaduta.' : 'Questa domanda non è più valida.'}</p>`;
 }
 async function answerAsk(id, answer) {
-  try { const r = await api('ask', { method: 'POST', body: JSON.stringify({ id, answer }) }); const el = $('#askBody'); if (el) el.innerHTML = `<p class="empty">${h(r.message)}</p>`; refresh(); }
+  try { const r = await api('ask', { method: 'POST', body: JSON.stringify({ id, answer }) }); const el = $('#askBody'); if (el) el.innerHTML = `<p class="empty">${h(r.already ? 'Ha già risposto qualcuno. ' : '')}${h(r.message)}</p>`; refresh(); }
   catch (e) { toast('Errore: ' + e.message); }
 }
 function openFromUrl(u) { try { const id = new URL(u, location.origin).searchParams.get('ask'); if (id) openSheet('ask', id); } catch {} }
@@ -986,7 +1001,7 @@ async function loadSiri(rotate = false) {
   const url = (a) => `${r.base}?t=${encodeURIComponent(r.token)}&do=${a}`;
   el.innerHTML = `<div class="hint" style="margin-top:0">${I('info')}<span>Ogni azione ha un link. Lo incolli nell’app <b>Comandi</b> dell’iPhone o dell’iPad. Porta e portone non sono mai inclusi.</span></div>
     <h4 class="sh4">Per la voce</h4><ol class="steps"><li>Apri <b>Comandi</b> → <b>+</b> → aggiungi l’azione <b>Ottieni contenuto dell’URL</b> e incolla il link.</li><li>Aggiungi <b>Pronuncia testo</b>: Siri ti dirà com’è andata.</li><li>Dai al comando il nome da pronunciare, es. «Esco di casa», e di’ <b>«Ehi Siri, esco di casa»</b>.</li></ol>
-    <h4 class="sh4">In automatico</h4><ol class="steps"><li><b>Comandi</b> → <b>Automazione</b> → <b>+</b> → <b>Parto</b> (scegli casa) → <b>Esegui subito</b>.</li><li>Azione <b>Ottieni contenuto dell’URL</b> con il link di «Sono uscito di casa»: se il riscaldamento sta scaldando ti arriva una notifica per spegnerlo (da attivare in Altro → «Notifiche e uscita di casa»). Con il link di «Esco di casa» invece lo abbassa subito, senza chiedere.</li><li>Ripeti con <b>Quando arrivo</b> e il link di «Casa inverno».</li></ol>
+    <h4 class="sh4">In automatico</h4><div class="hint" style="margin-top:0">${I('info')}<span>Per uscita e rientro da casa usa <b>Altro → Notifiche e presenza</b>: ogni telefono ha i suoi link «Esco» e «Arrivo».</span></div>
     <h4 class="sh4">Azioni</h4><div class="list">${r.actions.map((a) => `<div class="row"><span class="grow"><b>${h(a.name)}</b><small class="urlbox">${h(url(a.id))}</small></span><button class="btn sm" data-copy="${h(url(a.id))}">${I('copy')}Copia</button></div>`).join('')}</div>
     <div class="hint">${I('alert')}<span>Chi ha questi link può comandare luci, tapparelle e riscaldamento. Non condividerli. Se pensi che siano finiti in mani sbagliate, genera link nuovi: quelli vecchi smettono di funzionare.</span></div>
     <div class="btns"><button class="btn" data-act="siri-rotate">Genera link nuovi</button></div>`;
@@ -1088,7 +1103,9 @@ document.addEventListener('click', (e) => {
   if (ds.act === 'push-on') return pushOn();
   if (ds.act === 'push-off') return pushOff();
   if (ds.act === 'push-test') return pushTest();
-  if (ds.act === 'ask-off' || ds.act === 'ask-keep') return answerAsk(ds.id, ds.act === 'ask-off' ? 'off' : 'keep');
+  if (ds.act === 'ask') return answerAsk(ds.id, ds.choice);
+  if (ds.person) { ls.set('person', ds.person); return loadNotify(); }
+  if (ds.pres) return setPres(ds.pres, ds.home === '1');
   if (ds.act === 'siri-rotate') { if (confirm('I link attuali smetteranno di funzionare. Continuare?')) loadSiri(true); return; }
   if (ds.cmd) return send(ds.id, JSON.parse(ds.cmd));
   if (ds.themeSet) { ls.set('theme', ds.themeSet === 'auto' ? null : ds.themeSet); if (ds.themeSet === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = ds.themeSet; return renderSheet(); }

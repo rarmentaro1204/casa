@@ -27,12 +27,12 @@ self.addEventListener('notificationclick', (event) => {
   const d = event.notification.data || {};
   event.notification.close();
   // Bottoni della notifica (Android / desktop): rispondono senza aprire l'app.
-  if (d.ask && (event.action === 'off' || event.action === 'keep')) {
+  if (d.ask && event.action) {
     event.waitUntil(
       fetch('/api/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: d.ask, answer: event.action }) })
         .then((r) => r.json())
-        .then((r) => self.registration.showNotification('Casa', { body: r.message || r.error || 'Fatto.', tag: 'heating-answer' }))
-        .catch(() => self.registration.showNotification('Casa', { body: 'Non sono riuscito a rispondere: apri l\'app.', tag: 'heating-answer', data: { url: d.url } }))
+        .then((r) => self.registration.showNotification('Casa', { body: r.message || r.error || 'Fatto.', tag: 'heating-ask' }))
+        .catch(() => self.registration.showNotification('Casa', { body: 'Non sono riuscito a rispondere: apri l\'app.', tag: 'heating-ask', data: { url: d.url } }))
     );
     return;
   }

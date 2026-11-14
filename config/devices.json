@@ -113,6 +113,10 @@
       "subName": "Camera matrimoniale"
     }
   ],
+  "people": [
+    { "id": "roberto", "name": "Roberto" },
+    { "id": "francesca", "name": "Francesca" }
+  ],
   "scenes": [
     {
       "id": "buongiorno",

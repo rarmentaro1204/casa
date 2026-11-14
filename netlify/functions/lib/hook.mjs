@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import { getStore } from '@netlify/blobs';
 import { config, command, runScene } from './core.mjs';
 import { setMode, setBoost } from './heating.mjs';
-import { askHeatingOff } from './away.mjs';
+import { personLeft, personArrived } from './away.mjs';
 
 const store = () => getStore('casa');
 
@@ -23,8 +23,6 @@ export const ACTIONS = {
   inverno: ['Casa inverno', async () => `Casa inverno attivato.${tail(failures(await setMode('inverno')))}`],
   fuori: ['Esco di casa', async () => `Esco di casa: valvole a ${config.heating.away.temp} gradi.${tail(failures(await setMode('fuori')))}`],
   estate: ['Casa estate', async () => `Casa estate attivato.${tail(failures(await setMode('estate')))}`],
-  // Geofence «Quando esco»: se il riscaldamento sta scaldando manda una notifica con la domanda «lo spengo?».
-  uscito: ['Sono uscito di casa (chiede se spegnere il riscaldamento)', async () => { const r = await askHeatingOff(); return r.asked ? 'Ti ho mandato la notifica.' : `Nessuna notifica: ${r.reason}.`; }],
   scalda: ['Scalda la zona giorno per un\'ora', async () => `Scaldo la zona giorno per un'ora.${tail(failures(await setBoost({ ids: 'zona', minutes: 60 })))}`],
   'luci-off': ['Spegni tutte le luci', async () => `Luci spente.${tail(await each(byType('light').map((d) => [d.id, { on: false }])))}`],
   'tapparelle-giu': ['Abbassa le tapparelle', async () => `Abbasso le tapparelle.${tail(await each(byType('shutter').map((d) => [d.id, { action: 'down' }])))}`],
@@ -39,6 +37,12 @@ export async function runHook(req) {
   const real = (await store().get('hookToken')) || '';
   const ok = real && given.length === real.length && crypto.timingSafeEqual(Buffer.from(given), Buffer.from(real));
   if (!ok) return text('Non autorizzato', 401);
+  // Presenza (automazioni «Parto» / «Arrivo» di ogni telefono): &chi=<persona>
+  const pres = { uscito: personLeft, arrivato: personArrived }[u.searchParams.get('do')];
+  if (pres) {
+    try { const r = await pres(u.searchParams.get('chi')); return text(r.asked ? 'Ho mandato la notifica.' : `Nessuna notifica: ${r.reason}.`); }
+    catch (e) { return text(e.message, 400); }
+  }
   const act = ACTIONS[u.searchParams.get('do')];
   if (!act) return text(`Azione sconosciuta. Disponibili: ${Object.keys(ACTIONS).join(', ')}`, 400);
   try { return text(await act[1]()); } catch (e) { return text(`Non ci sono riuscito: ${e.message}`, 500); }

@@ -1,6 +1,6 @@
 import { getMode, setMode, setPolicy, setBoost, cancelBoost, status as heatingStatus } from './lib/heating.mjs';
 import { runHook, hookToken, ACTIONS } from './lib/hook.mjs';
-import { runAsk } from './lib/away.mjs';
+import { runAsk, getPresence, setPresence, people } from './lib/away.mjs';
 import * as push from './lib/push.mjs';
 import { listValves } from './lib/meross.mjs';
 import * as ewelink from './lib/ewelink.mjs';
@@ -37,8 +37,9 @@ export default async (req) => {
     if (path === 'boost') return json(body.cancel ? await cancelBoost() : await setBoost(body));
     if (path === 'hook-info') {
       const token = await hookToken(body.rotate === true);
-      return json({ base: `${new URL(req.url).origin}/api/hook`, token, actions: Object.entries(ACTIONS).map(([id, [name]]) => ({ id, name })) });
+      return json({ base: `${new URL(req.url).origin}/api/hook`, token, actions: Object.entries(ACTIONS).map(([id, [name]]) => ({ id, name })), people: people() });
     }
+    if (path === 'presence') return json(req.method === 'POST' ? await setPresence(body.person, body.home) : await getPresence());
     if (path === 'push-info') return json({ key: await push.publicKey(), devices: await push.devices() });
     if (path === 'push-subscribe') return json({ devices: await push.subscribe(body.subscription, req.headers.get('user-agent')) });
     if (path === 'push-unsubscribe') return json({ devices: await push.unsubscribe(body.endpoint) });
