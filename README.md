@@ -28,6 +28,9 @@ In prima pagina: **Casa inverno**, **Esco di casa**, **Casa estate** (definiti i
 - **Suggerimenti** (pagina Casa): luci o climatizzatore accesi mentre sei fuori, porta aperta di notte, clima e termosifone accesi insieme, stanza lontana dalla temperatura impostata, freddo fuori orario, tramonto con tapparelle su, notte gelida con "Casa estate". Ogni suggerimento ha un'azione con un tocco e si può nascondere per 3 ore.
 - **Scalda ora**: accende la zona giorno (o una sola valvola) a 21° per un'ora, poi tornano gli orari dello scenario. Funziona in qualsiasi scenario.
 - **Siri e automazioni** (Altro → Siri e automazioni): link per l'app Comandi dell'iPhone/iPad, per la voce ("Ehi Siri, esco di casa") o per le automazioni "Quando esco / Quando arrivo". Protetti da un token segreto rigenerabile; non aprono mai porta e portone.
+- **Uscita di casa → «spengo il riscaldamento?»** (Altro → Notifiche e uscita di casa): il telefono riconosce da solo quando esci (zona di iOS, sempre attiva anche con l'app chiusa: automazione Comandi «Parto» → link «Sono uscito di casa»). Se in quel momento il riscaldamento sta scaldando (fasce dell'app, programmi Meross letti dalle valvole, o «Scalda ora») arriva una notifica push: «Spegni» porta allo scenario «Esco di casa», «Lascia acceso» non cambia niente. Fuori fascia, in Estate o già in Esco di casa non arriva nulla; non ripete la domanda per 10 minuti; la risposta vale 3 ore.
+  - Notifiche: su iPhone l'app va aggiunta alla Home (iOS 16.4+), poi si attivano dal pannello. Su Android funzionano anche i bottoni direttamente nella notifica.
+  - Chiavi VAPID generate da sole e salvate nel Blob store (in alternativa variabili `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`).
 - **Meteo** (Open-Meteo, senza chiave): temperatura esterna e minima della notte; si attiva con la posizione del dispositivo.
 
 ## Controllo valvole
