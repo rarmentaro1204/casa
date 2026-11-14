@@ -1,5 +1,7 @@
 import { getMode, setMode, setPolicy, setBoost, cancelBoost, status as heatingStatus } from './lib/heating.mjs';
 import { runHook, hookToken, ACTIONS } from './lib/hook.mjs';
+import { runAsk } from './lib/away.mjs';
+import * as push from './lib/push.mjs';
 import { listValves } from './lib/meross.mjs';
 import * as ewelink from './lib/ewelink.mjs';
 import * as tuya from './lib/tuya.mjs';
@@ -11,6 +13,8 @@ const json = (data, status = 200) => Response.json(data, { status });
 export default async (req) => {
   // Siri / Comandi rapidi: protetti dal loro token, non dal PIN.
   if (new URL(req.url).pathname === '/api/hook') return runHook(req);
+  // Risposta alla notifica «sei uscito, spengo il riscaldamento?»: protetta dal codice monouso della domanda.
+  if (new URL(req.url).pathname === '/api/ask') return runAsk(req);
 
   // PIN semplice: imposta APP_PIN nelle variabili d'ambiente di Netlify.
   const pin = process.env.APP_PIN;
@@ -35,6 +39,10 @@ export default async (req) => {
       const token = await hookToken(body.rotate === true);
       return json({ base: `${new URL(req.url).origin}/api/hook`, token, actions: Object.entries(ACTIONS).map(([id, [name]]) => ({ id, name })) });
     }
+    if (path === 'push-info') return json({ key: await push.publicKey(), devices: await push.devices() });
+    if (path === 'push-subscribe') return json({ devices: await push.subscribe(body.subscription, req.headers.get('user-agent')) });
+    if (path === 'push-unsubscribe') return json({ devices: await push.unsubscribe(body.endpoint) });
+    if (path === 'push-test') return json(await push.sendToAll({ title: 'Casa', body: 'Le notifiche funzionano.', tag: 'test', url: '/' }, { ttl: 300 }));
     if (path === 'policy') return json(await setPolicy(body.policy));
     if (path === 'mode') return json(await setMode(body.mode));
     if (path === 'discover') {

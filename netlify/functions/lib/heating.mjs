@@ -95,8 +95,9 @@ export async function setBoost({ ids = 'zona', minutes = 60, temp } = {}) {
   await store().setJSON('boost', { ids: list, temp: t, until: Date.now() + m * 60e3, minutes: m });
   return applyHeating({ budget: 7000 });
 }
+export const clearBoost = () => store().delete('boost');
 export async function cancelBoost() {
-  await store().delete('boost');
+  await clearBoost();
   return applyHeating({ budget: 7000 });
 }
 
