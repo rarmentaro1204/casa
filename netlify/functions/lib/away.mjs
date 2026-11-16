@@ -87,6 +87,25 @@ export async function personLeft(id) {
   return ask('off', { title: ps.length > 1 ? 'Casa vuota' : 'Hai lasciato casa', text, choices: [{ id: 'off', label: 'Spegni' }, { id: 'keep', label: 'Lascia acceso' }] });
 }
 
+// Inizio fascia con la casa vuota (chiamata ogni minuto dallo scheduler): se nei primi 5 minuti di una fascia
+// del riscaldamento sono tutti fuori (stato noto di tutti) e sta scaldando, chiede «Lo spengo?».
+// Una sola volta per fascia.
+export async function checkEmptyAtSlotStart(at = new Date()) {
+  const now = romeNow(at), h = config.heating, slots = now.day <= 5 ? h.winter.weekdays : h.winter.weekend;
+  const toMin = (x) => +x.slice(0, 2) * 60 + +x.slice(3, 5), m = toMin(now.hhmm);
+  const slot = slots.find(([a]) => m >= toMin(a) && m < toMin(a) + 5);
+  if (!slot) return { asked: false, reason: 'non è l\'inizio di una fascia' };
+  const ps = await getPresence();
+  if (!ps.length || ps.some((p) => p.home !== false)) return { asked: false, reason: 'in casa c\'è qualcuno, o lo stato di qualcuno non è noto' };
+  const key = `${new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' }).format(at)}-${slot[0]}`;
+  if ((await store().get('emptyAsk', { type: 'json' })) === key) return { asked: false, reason: 'già chiesto per questa fascia' };
+  const heat = await heatingNow(at);
+  if (!heat.on) return { asked: false, reason: heat.why };
+  await store().setJSON('emptyAsk', key);
+  const text = `Non c'è nessuno in casa e il riscaldamento è appena partito${heat.temp != null ? ` a ${deg(heat.temp)}` : ''}${heat.until ? ` fino alle ${heat.until}` : ''}. Lo spengo?`;
+  return ask('off', { title: 'Casa vuota', text, choices: [{ id: 'off', label: 'Spegni' }, { id: 'keep', label: 'Lascia acceso' }] });
+}
+
 export async function personArrived(id) {
   const who = person(id);
   await setPresence(who.id, true);
